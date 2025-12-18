@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['patient', 'doctor', 'hospital_admin', 'hospital_staff', 'pharmacy'],
+        enum: ['patient', 'doctor', 'hospital_admin', 'hospital_staff', 'pharmacy', 'super_admin'],
         default: 'patient',
     },
     hospitalId: {
@@ -35,6 +35,26 @@ const userSchema = new mongoose.Schema({
     contact: {
         phone: String,
         address: String,
+    },
+    // Demographics (for when Patient record isn't fully linked or needed quickly)
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other'],
+    },
+    dateOfBirth: {
+        type: Date,
+    },
+    // Digital Health Card Data
+    healthId: {
+        type: String,
+        sparse: true,
+        index: true
+    },
+    healthCardQr: {
+        type: String, // JSON string or URL
+    },
+    healthCardIssueDate: {
+        type: Date,
     },
     createdAt: {
         type: Date,

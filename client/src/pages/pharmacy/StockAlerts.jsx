@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../../api/axiosConfig';
 import { AlertTriangle, Clock } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -9,7 +9,7 @@ const StockAlerts = () => {
     const [loading, setLoading] = useState(true);
     const [expiryDays, setExpiryDays] = useState(30);
 
-    const fetchAlerts = async () => {
+    const fetchAlerts = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
 
@@ -29,11 +29,11 @@ const StockAlerts = () => {
             console.error('Error fetching alerts:', error);
             setLoading(false);
         }
-    };
+    }, [expiryDays]);
 
     useEffect(() => {
         fetchAlerts();
-    }, [expiryDays]);
+    }, [fetchAlerts]);
 
     const getTotalStock = (batches) => {
         return batches?.reduce((sum, batch) => sum + batch.quantity, 0) || 0;

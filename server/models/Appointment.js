@@ -54,6 +54,10 @@ const appointmentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Prescription',
     },
+    invoiceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Invoice',
+    },
     telemedicineRoomId: {
         type: String,
     },
@@ -66,6 +70,27 @@ const appointmentSchema = new mongoose.Schema({
     isTelemedicine: {
         type: Boolean,
         default: false,
+    },
+    // BBB Meeting Management Fields
+    meetingStatus: {
+        type: String,
+        enum: ['not_started', 'in_progress', 'ended'],
+        default: 'not_started',
+    },
+    bbbMeetingId: {
+        type: String,
+    },
+    bbbAttendeePassword: {
+        type: String,
+    },
+    bbbModeratorPassword: {
+        type: String,
+    },
+    meetingStartedAt: {
+        type: Date,
+    },
+    meetingEndedAt: {
+        type: Date,
     },
     cancelReason: {
         type: String,

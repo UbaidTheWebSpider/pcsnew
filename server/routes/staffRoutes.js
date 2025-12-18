@@ -6,6 +6,7 @@ const {
     getPatients,
     getPatientById,
     updatePatient,
+    deletePatient,
     getDoctors,
 } = require('../controllers/staffController');
 const { protect } = require('../middleware/authMiddleware');
@@ -18,6 +19,7 @@ router.post('/patients', protect, registerPatient);
 router.get('/patients', protect, getPatients);
 router.get('/patients/:id', protect, getPatientById);
 router.put('/patients/:id', protect, updatePatient);
+router.delete('/patients/:id', protect, deletePatient);
 
 // Doctors list
 router.get('/doctors', protect, getDoctors);

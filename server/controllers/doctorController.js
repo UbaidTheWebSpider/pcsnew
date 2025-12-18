@@ -1,6 +1,144 @@
 const Patient = require('../models/Patient');
 const Appointment = require('../models/Appointment');
 const Prescription = require('../models/Prescription');
+const Doctor = require('../models/Doctor');
+const bbbService = require('../utils/bbbService');
+
+// @desc    Get doctor profile
+// @route   GET /api/doctor/profile
+// @access  Private/Doctor
+const getProfile = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({ userId: req.user._id }).populate('userId', 'name email contact');
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor profile not found' });
+        }
+        res.json({ success: true, data: doctor });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update doctor profile
+// @route   PUT /api/doctor/profile
+// @access  Private/Doctor
+const updateProfile = async (req, res) => {
+    try {
+        const { personalDetails, professionalDetails, scheduleSettings, consultationFees, telemedicine } = req.body;
+
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor profile not found' });
+        }
+
+        if (personalDetails) doctor.personalDetails = { ...doctor.personalDetails, ...personalDetails };
+        if (professionalDetails) doctor.professionalDetails = { ...doctor.professionalDetails, ...professionalDetails };
+        if (scheduleSettings) doctor.scheduleSettings = scheduleSettings;
+        if (consultationFees) doctor.consultationFees = consultationFees;
+        if (telemedicine) doctor.telemedicine = telemedicine;
+
+        await doctor.save();
+        res.json({ success: true, data: doctor });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Generate appointment slots
+// @route   POST /api/doctor/schedule/generate
+// @access  Private/Doctor
+const generateSchedule = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body; // YYYY-MM-DD
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+
+        if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const slots = [];
+
+        // Loop through each day
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+            const daySchedule = doctor.scheduleSettings.weeklyAvailability.find(s => s.day === dayName && s.isAvailable);
+
+            if (daySchedule) {
+                let currentTime = new Date(`${d.toISOString().split('T')[0]}T${daySchedule.startTime}`);
+                const endTime = new Date(`${d.toISOString().split('T')[0]}T${daySchedule.endTime}`);
+
+                while (currentTime < endTime) {
+                    const timeString = currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+                    // Check if slot already exists to avoid duplicates
+                    const exists = await Appointment.findOne({
+                        doctorId: req.user._id,
+                        scheduledDate: d,
+                        scheduledTime: timeString
+                    });
+
+                    if (!exists) {
+                        // In a real system, you might create "Slot" documents here.
+                        // For this system, we might just return generated slots or auto-create empty appointments if that's the design.
+                        // Assuming we just return them for preview or validation for now.
+                        slots.push({
+                            date: d.toISOString().split('T')[0],
+                            time: timeString,
+                            available: true
+                        });
+                    }
+
+                    currentTime.setMinutes(currentTime.getMinutes() + doctor.scheduleSettings.slotDuration);
+                }
+            }
+        }
+
+        res.json({ success: true, data: slots });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Start Telemedicine Session (BBB)
+// @route   POST /api/doctor/appointments/:id/start-video
+// @access  Private/Doctor
+const startTelemedicineSession = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id).populate('patientId');
+        if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+
+        if (appointment.doctorId.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const meetingID = `appt-${appointment._id}`;
+        const meetingName = `Consultation with ${appointment.patientId.name}`;
+
+        // Create meeting on BBB
+        await bbbService.createMeeting(meetingID, meetingName);
+
+        // Generate Join URLs
+        const moderatorUrl = bbbService.getJoinUrl(meetingID, req.user.name, 'mp'); // Doctor is moderator
+        const attendeeUrl = bbbService.getJoinUrl(meetingID, appointment.patientId.name, 'ap'); // Patient is attendee
+
+        // Save meeting details to appointment
+        appointment.meetingId = meetingID;
+        appointment.meetingUrl = attendeeUrl; // Save patient's join URL
+        appointment.status = 'in-progress';
+        await appointment.save();
+
+        res.json({
+            success: true,
+            data: {
+                joinUrl: moderatorUrl,
+                patientJoinUrl: attendeeUrl
+            }
+        });
+    } catch (error) {
+        console.error('Telemedicine Error:', error);
+        res.status(500).json({ message: 'Failed to start video session' });
+    }
+};
 
 // @desc    Get all patients assigned to doctor
 // @route   GET /api/doctor/patients
@@ -351,6 +489,10 @@ const completeAppointment = async (req, res) => {
 };
 
 module.exports = {
+    getProfile,
+    updateProfile,
+    generateSchedule,
+    startTelemedicineSession,
     getPatients,
     getPatientById,
     addPatientNote,

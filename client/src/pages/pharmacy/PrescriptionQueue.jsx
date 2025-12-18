@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../../api/axiosConfig';
 import { FileText, User, Calendar, Package } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -9,7 +9,7 @@ const PrescriptionQueue = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('pending');
 
-    const fetchPrescriptions = async () => {
+    const fetchPrescriptions = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get(`/api/prescriptions/queue?status=${filter}`, {
@@ -21,11 +21,11 @@ const PrescriptionQueue = () => {
             console.error('Error fetching prescriptions:', error);
             setLoading(false);
         }
-    };
+    }, [filter]);
 
     useEffect(() => {
         fetchPrescriptions();
-    }, [filter]);
+    }, [fetchPrescriptions]);
 
     const handleProcess = async (id) => {
         try {

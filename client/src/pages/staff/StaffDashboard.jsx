@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
 import { Users, UserPlus, Calendar, Activity, ClipboardList, ArrowRight } from 'lucide-react';
@@ -8,11 +8,7 @@ const StaffDashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchDashboardStats();
-    }, []);
-
-    const fetchDashboardStats = async () => {
+    const fetchDashboardStats = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/staff/dashboard', {
@@ -24,7 +20,11 @@ const StaffDashboard = () => {
             console.error('Error fetching dashboard:', error);
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchDashboardStats();
+    }, [fetchDashboardStats]);
 
     if (loading) {
         return (
@@ -38,9 +38,11 @@ const StaffDashboard = () => {
         );
     }
 
+
+
     return (
         <DashboardLayout>
-            <div className="p-8">
+            <div className="p-8 bg-gray-50">
                 <div className="max-w-7xl mx-auto">
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">Hospital Staff Dashboard</h1>
                     <p className="text-gray-600 mb-8">Patient Registration & Management Center</p>
@@ -121,7 +123,7 @@ const StaffDashboard = () => {
                             </Link>
 
                             <Link
-                                to="/staff/check-in"
+                                to="/staff/checkin"
                                 className="flex items-center justify-between p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition group"
                             >
                                 <div className="flex items-center gap-3">
@@ -134,6 +136,22 @@ const StaffDashboard = () => {
                                     </div>
                                 </div>
                                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition" />
+                            </Link>
+
+                            <Link
+                                to="/staff/health-cards"
+                                className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center">
+                                        <ClipboardList className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-800">Health Cards</p>
+                                        <p className="text-sm text-gray-600">Digital IDs</p>
+                                    </div>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition" />
                             </Link>
                         </div>
                     </div>

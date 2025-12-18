@@ -19,6 +19,7 @@ app.use((req, res, next) => {
 connectDB();
 
 // Routes
+console.log('--- RELOADING ROUTES ON PORT:', process.env.PORT || 5000, '---');
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
@@ -26,7 +27,18 @@ app.use('/api/medicines', require('./routes/medicineRoutes'));
 app.use('/api/prescriptions', require('./routes/prescriptionRoutes'));
 app.use('/api/doctor', require('./routes/doctorRoutes'));
 app.use('/api/patient', require('./routes/patientRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/staff/admissions', require('./routes/admissionRoutes')); // Specific route first
+app.use('/api/staff/patients', require('./routes/staffPatientRoutes')); // Specific route second
 app.use('/api/staff', require('./routes/staffRoutes'));
+app.use('/api/lab-reports', require('./routes/labReportRoutes'));
+app.use('/api/billing', require('./routes/billingRoutes'));
+app.use('/api/check-in', require('./routes/checkInRoutes'));
+app.use('/api/patients', require('./routes/universalPatientRoutes')); // Universal access for staff
+app.use('/api/admin/patients', require('./routes/adminPatientRoutes')); // Admin Grid API
+app.use('/api/pharmacies', require('./routes/pharmacyRoutes')); // Pharmacy management
+
 
 app.get('/', (req, res) => {
   res.send('Telemedicine API is running...');
@@ -47,10 +59,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
+// Start Server with Socket.io
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const http = require('http');
+  const { initializeSocket } = require('./socket');
+  // Initializing server
+  const server = http.createServer(app);
+  initializeSocket(server);
+
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.io enabled for real-time updates`);
   });
 }
 

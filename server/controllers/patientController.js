@@ -63,7 +63,7 @@ const getDashboardStats = async (req, res) => {
         const upcomingAppointments = await Appointment.find({
             patientId: req.user._id,
             scheduledDate: { $gte: today },
-            status: { $in: ['pending', 'confirmed'] },
+            status: { $in: ['pending', 'confirmed', 'in-progress'] },
         })
             .populate('doctorId', 'name specialization')
             .sort({ scheduledDate: 1 })
@@ -344,26 +344,23 @@ const joinConsultation = async (req, res) => {
 
         const BBBService = require('../services/BBBService');
 
-        // Extract passwords from stored field
-        // Format: "attendeePW:moderatorPW"
-        const [attendeePW] = appointment.telemedicineRoomId.split(':');
-
-        if (!attendeePW) {
-            return res.status(500).json({ message: 'Meeting configuration error.' });
+        // Check if meeting has been started
+        if (!appointment.bbbMeetingId || appointment.meetingStatus !== 'in_progress') {
+            return res.status(400).json({ message: 'Meeting has not been started by the doctor yet.' });
         }
 
-        // Generate Join URL for Patient (Attendee)
+        // Generate Join URL for Patient (Attendee) using new schema fields
         const joinUrl = BBBService.getJoinUrl(
-            appointment.videoRoomId,
+            appointment.bbbMeetingId,
             appointment.patientId.name,
-            attendeePW
+            appointment.bbbAttendeePassword
         );
 
         res.json({
             success: true,
             message: 'Joining video consultation...',
             videoCallUrl: joinUrl,
-            roomId: appointment.videoRoomId
+            roomId: appointment.bbbMeetingId
         });
 
     } catch (error) {

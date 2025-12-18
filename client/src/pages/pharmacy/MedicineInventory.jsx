@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../../api/axiosConfig';
 import { Plus, Package, Search } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -31,7 +31,7 @@ const MedicineInventory = () => {
         barcode: '',
     });
 
-    const fetchMedicines = async () => {
+    const fetchMedicines = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/medicines', {
@@ -43,11 +43,11 @@ const MedicineInventory = () => {
             console.error('Error fetching medicines:', error);
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchMedicines();
-    }, []);
+    }, [fetchMedicines]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

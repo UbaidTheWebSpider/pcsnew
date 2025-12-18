@@ -1,0 +1,20 @@
+// Simple MongoDB commands to fix staff user's hospitalId
+// Run these commands in MongoDB Compass or mongo shell
+
+// 1. First, find the admin user to get their ID
+db.users.findOne({ role: 'hospital_admin' })
+
+// 2. Copy the admin's _id from the output above
+
+// 3. Then update ALL staff users to have that hospitalId
+// Replace 'ADMIN_ID_HERE' with the actual admin _id from step 1
+db.users.updateMany(
+  { role: 'hospital_staff' },
+  { $set: { hospitalId: ObjectId('ADMIN_ID_HERE') } }
+)
+
+// OR if you know the staff user's email, update just that one:
+db.users.updateOne(
+  { email: 'staff@example.com' },  // Replace with actual staff email
+  { $set: { hospitalId: ObjectId('ADMIN_ID_HERE') } }
+)

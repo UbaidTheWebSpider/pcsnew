@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, Calendar, Package, FileText, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Calendar, Package, FileText, AlertTriangle, CreditCard } from 'lucide-react';
 import { useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 
@@ -15,6 +15,7 @@ const Sidebar = () => {
                     { path: '/admin/doctors', label: 'Manage Doctors', icon: Users },
                     { path: '/admin/pharmacies', label: 'Manage Pharmacies', icon: Building2 },
                     { path: '/admin/patients', label: 'Manage Patients', icon: Users },
+                    { path: '/staff/health-cards', label: 'Health Cards', icon: CreditCard },
                 ];
             case 'doctor':
                 return [
@@ -35,7 +36,8 @@ const Sidebar = () => {
                     { path: '/staff', label: 'Dashboard', icon: LayoutDashboard },
                     { path: '/staff/register-patient', label: 'Register Patient', icon: Users },
                     { path: '/staff/patients', label: 'Patient List', icon: Users },
-                    { path: '/staff/check-in', label: 'Check-In', icon: Calendar },
+                    { path: '/staff/checkin', label: 'Check-In', icon: Calendar },
+                    { path: '/staff/health-cards', label: 'Digital Health Cards', icon: CreditCard },
                 ];
             case 'pharmacy':
                 return [
@@ -52,13 +54,13 @@ const Sidebar = () => {
     const menuItems = getMenuItems();
 
     return (
-        <aside className="w-72 bg-white border-r border-slate-200 min-h-screen flex flex-col shadow-sm z-10">
-            <div className="p-6 border-b border-slate-100">
+        <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-screen flex flex-col shadow-sm z-10 transition-colors duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
                         <span className="text-white font-bold text-lg">P</span>
                     </div>
-                    <span className="text-xl font-bold text-slate-800 tracking-tight">Pharmacy</span>
+                    <span className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Pharmacy</span>
                 </div>
             </div>
 
@@ -72,11 +74,11 @@ const Sidebar = () => {
                                 key={item.path}
                                 to={item.path}
                                 className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
                                     }`}
                             >
-                                <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                                <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} />
                                 <span className="text-sm">{item.label}</span>
                             </Link>
                         );
@@ -84,14 +86,14 @@ const Sidebar = () => {
                 </nav>
             </div>
 
-            <div className="p-4 border-t border-slate-100">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
                         {user?.name?.charAt(0) || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{user?.name || 'User'}</p>
-                        <p className="text-xs text-slate-500 truncate capitalize">{user?.role?.replace('_', ' ') || 'Role'}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name || 'User'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate capitalize">{user?.role?.replace('_', ' ') || 'Role'}</p>
                     </div>
                 </div>
             </div>

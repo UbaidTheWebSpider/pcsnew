@@ -102,40 +102,34 @@ const startConsultation = async (req, res) => {
 
         const BBBService = require('../services/BBBService');
         const crypto = require('crypto');
+        const { emitMeetingStarted } = require('../socket');
 
-        // Check if meeting is already running or created
-        if (appointment.videoRoomId) {
-            const isRunning = await BBBService.isMeetingRunning(appointment.videoRoomId);
+        // Check if meeting is already running
+        if (appointment.bbbMeetingId && appointment.meetingStatus === 'in_progress') {
+            const isRunning = await BBBService.isMeetingRunning(appointment.bbbMeetingId);
 
             if (isRunning) {
                 // Return existing join URL for moderator
                 const joinUrl = BBBService.getJoinUrl(
-                    appointment.videoRoomId,
+                    appointment.bbbMeetingId,
                     `Dr. ${appointment.doctorId.name}`,
-                    appointment.moderatorPW || 'mp' // Fallback if PW lost, though unlikely
+                    appointment.bbbModeratorPassword
                 );
 
                 return res.json({
                     success: true,
                     message: 'Video call already running',
                     videoCallUrl: joinUrl,
-                    roomId: appointment.videoRoomId,
+                    roomId: appointment.bbbMeetingId,
                     appointment
                 });
             }
-            // If not running but ID exists, we might need to recreate or just let it fall through to create new
-            // For simplicity, if it's not running, we'll create a new session or restart it.
-            // BBB allows re-creating with same ID if it's ended.
         }
 
         // Generate Meeting Details
-        // Use a stable but unique ID for the meeting based on appointment ID
-        // We append a timestamp or random string to ensure uniqueness if multiple sessions happen for same appointment (e.g. re-connect)
-        // But typically appointment ID is enough if we want persistent room for that appointment.
-        // Let's use AppointmentID as the base.
         const meetingID = `mtg-${appointment._id}`;
-        const attendeePW = crypto.randomBytes(4).toString('hex'); // Random 8 char password
-        const moderatorPW = crypto.randomBytes(4).toString('hex'); // Random 8 char password
+        const attendeePW = crypto.randomBytes(6).toString('hex'); // 12 char password
+        const moderatorPW = crypto.randomBytes(6).toString('hex'); // 12 char password
         const meetingName = `Consultation: ${appointment.patientId.name}`;
 
         // Create BBB Meeting
@@ -148,29 +142,45 @@ const startConsultation = async (req, res) => {
             moderatorPW
         );
 
-        // Update Appointment with BBB Details
+        // Update Appointment with BBB Details using new schema fields
+        appointment.bbbMeetingId = meetingID;
+        appointment.bbbAttendeePassword = attendeePW;
+        appointment.bbbModeratorPassword = moderatorPW;
+        appointment.meetingStatus = 'in_progress';
+        appointment.meetingStartedAt = new Date();
+        appointment.status = 'in-progress';
+
+        // Keep legacy fields for backward compatibility
         appointment.videoRoomId = meetingID;
-        appointment.videoCallUrl = joinUrl; // This is the doctor's URL, but we store it for reference. 
-        // Ideally we shouldn't expose moderator URL to patient, so we'll generate patient's URL on the fly in their endpoint.
-        // We need to store passwords to generate patient URL later.
-        // We'll use the existing schema fields or add new ones. 
-        // Schema has `videoCallUrl` and `videoRoomId`. We can misuse `telemedicineRoomId` for attendeePW or add to schema.
-        // Since "Do NOT modify existing backend models" is a rule, we must be clever.
-        // We can store the passwords in `telemedicineRoomId` as a JSON string or delimited string if we strictly can't change schema.
-        // OR, we can just regenerate the join URL for patient if we know the password. 
-        // Wait, if we don't save the password, we can't generate the join link for the patient later!
-        // The `Appointment` model has `telemedicineRoomId`. I will store "attendeePW:moderatorPW" there.
         appointment.telemedicineRoomId = `${attendeePW}:${moderatorPW}`;
 
-        appointment.status = 'in-progress';
         await appointment.save();
 
-        console.log('DEBUG - Appointment saved with:', {
-            _id: appointment._id,
-            videoRoomId: appointment.videoRoomId,
-            telemedicineRoomId: appointment.telemedicineRoomId,
+        console.log('✅ Meeting started:', {
+            appointmentId: appointment._id,
+            bbbMeetingId: appointment.bbbMeetingId,
+            meetingStatus: appointment.meetingStatus,
             status: appointment.status
         });
+
+        // Emit real-time event to patient
+        try {
+            emitMeetingStarted(
+                appointment._id.toString(),
+                appointment.patientId._id.toString(),
+                {
+                    _id: appointment._id,
+                    bbbMeetingId: appointment.bbbMeetingId,
+                    meetingStatus: appointment.meetingStatus,
+                    status: appointment.status,
+                    doctorId: appointment.doctorId,
+                    scheduledDate: appointment.scheduledDate,
+                    scheduledTime: appointment.scheduledTime
+                }
+            );
+        } catch (socketError) {
+            console.error('⚠️ Socket emit failed (non-critical):', socketError.message);
+        }
 
         res.json({
             success: true,
@@ -181,7 +191,7 @@ const startConsultation = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Start Consultation Error:', error);
+        console.error('❌ Start Consultation Error:', error);
         res.status(500).json({
             message: error.message || 'Failed to create video call room'
         });

@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 
 const prescriptionSchema = new mongoose.Schema({
-    patientId: {
+    prescriptionId: {
+        type: String,
+        unique: true,
+    },
+    appointmentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Appointment',
         required: true,
     },
     doctorId: {
@@ -11,53 +15,37 @@ const prescriptionSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    hospitalId: {
+    patientId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    },
-    appointmentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Appointment',
+        required: true,
     },
     medicines: [{
-        medicineId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Medicine',
-        },
-        name: String,
-        dosage: String,
-        frequency: String,
-        duration: String,
-        quantity: Number,
+        name: { type: String, required: true },
+        dosage: { type: String, required: true }, // e.g., "500mg"
+        frequency: { type: String, required: true }, // e.g., "1-0-1"
+        duration: { type: String, required: true }, // e.g., "5 days"
+        instructions: String,
     }],
-    notes: {
-        type: String,
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'processing', 'ready', 'completed', 'cancelled'],
-        default: 'pending',
-    },
-    assignedPharmacyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-    },
-    processedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-    },
-    deliveryType: {
-        type: String,
-        enum: ['pickup', 'delivery'],
-        default: 'pickup',
+    notes: String,
+    fileUrl: String, // Path to generated PDF
+    isPharmacyForwarded: {
+        type: Boolean,
+        default: false,
     },
     createdAt: {
         type: Date,
         default: Date.now,
     },
-    processedAt: {
-        type: Date,
-    },
+});
+
+// Generate unique prescription ID
+prescriptionSchema.pre('save', async function (next) {
+    if (this.isNew && !this.prescriptionId) {
+        const count = await mongoose.model('Prescription').countDocuments();
+        this.prescriptionId = `RX${String(count + 1).padStart(6, '0')}`;
+    }
+    next();
 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

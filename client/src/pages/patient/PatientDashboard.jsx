@@ -4,6 +4,7 @@ import axiosInstance from '../../api/axiosConfig';
 import { Calendar, FileText, DollarSign, User, Clock, CheckCircle, AlertCircle, Activity, Video } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Swal from 'sweetalert2';
+import socketService from '../../utils/socket';
 
 const PatientDashboard = () => {
     const navigate = useNavigate();
@@ -12,6 +13,46 @@ const PatientDashboard = () => {
 
     useEffect(() => {
         fetchDashboardData();
+
+        // Get user ID from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user._id || user.id;
+
+        if (userId) {
+            // Connect to Socket.io and join user room
+            socketService.connect(userId);
+            socketService.joinUserRoom(userId);
+
+            // Listen for meeting started events
+            socketService.onMeetingStarted((data) => {
+                console.log('🎥 Meeting started event received:', data);
+
+                // Show notification
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Meeting Started!',
+                    text: data.message || 'Doctor has started the video consultation.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+
+                // Refresh dashboard data
+                fetchDashboardData();
+            });
+
+            // Listen for appointment updates
+            socketService.onAppointmentUpdated(() => {
+                fetchDashboardData();
+            });
+        }
+
+        return () => {
+            // Cleanup socket listeners on unmount
+            socketService.removeAllListeners();
+        };
     }, []);
 
     const fetchDashboardData = async () => {
@@ -200,14 +241,21 @@ const PatientDashboard = () => {
                                             }`}>
                                             {appointment.status}
                                         </span>
-                                        {appointment.isTelemedicine && (
-                                            <button
-                                                onClick={() => joinConsultation(appointment)}
-                                                className="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2 transition"
-                                            >
-                                                <Video size={16} />
-                                                Join
-                                            </button>
+                                        {appointment.isTelemedicine && appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
+                                            appointment.bbbMeetingId && appointment.meetingStatus === 'in_progress' ? (
+                                                <button
+                                                    onClick={() => joinConsultation(appointment)}
+                                                    className="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2 transition"
+                                                >
+                                                    <Video size={16} />
+                                                    Join
+                                                </button>
+                                            ) : (
+                                                <span className="ml-4 px-4 py-2 bg-gray-100 text-gray-500 text-sm rounded-lg flex items-center gap-2 border border-gray-200">
+                                                    <Clock size={16} />
+                                                    Waiting for Doctor
+                                                </span>
+                                            )
                                         )}
                                     </div>
                                 ))}

@@ -33,15 +33,16 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
-
 const authorize = (...roles) => {
     return (req, res, next) => {
+        console.log('Authorize middleware - User role:', req.user.role, 'Allowed roles:', roles);
         if (!roles.includes(req.user.role)) {
+            console.log('AUTHORIZATION FAILED - Role not allowed');
             return res.status(403).json({
                 message: `User role ${req.user.role} is not authorized to access this route`
             });
         }
+        console.log('AUTHORIZATION SUCCESS');
         next();
     };
 };

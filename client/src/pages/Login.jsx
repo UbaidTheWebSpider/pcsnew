@@ -15,8 +15,14 @@ const Login = () => {
             const userData = await login(email, password);
             // Redirect based on user role
             switch (userData.role) {
+                case 'super_admin':
+                    navigate('/super-admin');
+                    break;
                 case 'hospital_admin':
                     navigate('/admin');
+                    break;
+                case 'hospital_staff':
+                    navigate('/staff');
                     break;
                 case 'doctor':
                     navigate('/doctor');

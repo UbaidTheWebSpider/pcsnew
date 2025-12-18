@@ -36,4 +36,17 @@ router.post('/appointments/join-consultation', protect, joinConsultation);
 router.get('/prescriptions', protect, getPrescriptions);
 router.get('/prescriptions/:id', protect, getPrescriptionById);
 
+// --- PMI Extension Routes ---
+const {
+    checkForDuplicates,
+    generateDigitalHealthId,
+    updateConsent,
+    getEntitlements
+} = require('../controllers/patientControllerExtension');
+
+router.post('/check-duplicates', protect, checkForDuplicates);
+router.post('/:id/generate-health-id', protect, generateDigitalHealthId);
+router.post('/:id/consent', protect, updateConsent);
+router.get('/:id/entitlements', protect, getEntitlements);
+
 module.exports = router;

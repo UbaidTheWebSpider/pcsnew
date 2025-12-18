@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const {
+    getProfile,
+    updateProfile,
+    generateSchedule,
+    startTelemedicineSession,
     getPatients,
     getPatientById,
     addPatientNote,
@@ -13,6 +17,13 @@ const {
     completeAppointment,
 } = require('../controllers/doctorController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+
+// Profile routes
+router.get('/profile', protect, authorize('doctor'), getProfile);
+router.put('/profile', protect, authorize('doctor'), updateProfile);
+
+// Schedule routes
+router.post('/schedule/generate', protect, authorize('doctor'), generateSchedule);
 
 // Patient routes
 router.get('/patients', protect, authorize('doctor'), getPatients);
@@ -27,5 +38,6 @@ router.post('/appointments', protect, authorize('doctor'), createAppointment);
 router.put('/appointments/:id/reschedule', protect, authorize('doctor'), rescheduleAppointment);
 router.put('/appointments/:id/cancel', protect, authorize('doctor'), cancelAppointment);
 router.put('/appointments/:id/complete', protect, authorize('doctor'), completeAppointment);
+router.post('/appointments/:id/start-video', protect, authorize('doctor'), startTelemedicineSession);
 
 module.exports = router;
