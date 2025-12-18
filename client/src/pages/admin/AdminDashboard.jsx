@@ -127,7 +127,7 @@ const AdminDashboard = () => {
                                         <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                        Manage Doctors
+                                        Manage Clinics
                                     </h3>
                                 </div>
                                 <p className="text-gray-600 dark:text-gray-400 text-sm">

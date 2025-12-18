@@ -12,7 +12,7 @@ const Sidebar = () => {
             case 'hospital_admin':
                 return [
                     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-                    { path: '/admin/doctors', label: 'Manage Doctors', icon: Users },
+                    { path: '/admin/doctors', label: 'Manage Clinics', icon: Users },
                     { path: '/admin/pharmacies', label: 'Manage Pharmacies', icon: Building2 },
                     { path: '/admin/patients', label: 'Manage Patients', icon: Users },
                     { path: '/staff/health-cards', label: 'Health Cards', icon: CreditCard },
