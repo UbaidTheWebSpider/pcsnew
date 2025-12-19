@@ -35,10 +35,7 @@ const PatientProfileModal = ({ patientId, onClose }) => {
             <div
                 className={`relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl transform transition-all duration-300 ${isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'} flex flex-col max-h-[90vh] overflow-hidden border border-white/20`}
             >
-                {/* Header Gradient */}
-                <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-800">
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                </div>
+                {/* The background is now handled within ProfileContent for better control over layering */}
 
                 {/* Close Button */}
                 <button
@@ -129,37 +126,44 @@ const ProfileContent = ({ patientId }) => {
 
     return (
         <div className="flex flex-col h-full bg-slate-50 rounded-3xl overflow-hidden z-10">
-            {/* Professional Header */}
-            <div className="relative px-10 pt-10 pb-6 z-10">
-                <div className="flex items-center gap-8">
+            {/* Professional Dark Header - High End Design */}
+            <div className="relative bg-slate-900 px-10 pt-12 pb-10 overflow-hidden shadow-2xl">
+                {/* Subtle Decorative Elements */}
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-500/10 to-transparent pointer-events-none"></div>
+                <div className="absolute -top-24 -left-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div className="relative flex items-center gap-8 z-10">
                     {/* Compact Avatar */}
                     <div className="relative group">
-                        <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-2xl ring-4 ring-white/30 group-hover:ring-indigo-500/20 transition-all duration-500">
+                        <div className="w-24 h-24 rounded-[2rem] bg-slate-800 p-1 shadow-2xl ring-4 ring-slate-700/50 group-hover:ring-indigo-500/40 transition-all duration-500 overflow-hidden">
                             {patient.photoUrl ? (
-                                <img src={patient.photoUrl} className="w-full h-full object-cover rounded-xl" alt="Profile" />
+                                <img src={patient.photoUrl} className="w-full h-full object-cover rounded-[1.8rem]" alt="Profile" />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-indigo-50 rounded-xl flex items-center justify-center text-indigo-300">
-                                    <User size={32} />
+                                <div className="w-full h-full bg-slate-800 rounded-[1.8rem] flex items-center justify-center text-slate-500">
+                                    <User size={40} />
                                 </div>
                             )}
                         </div>
-                        <div className="absolute -bottom-1 -right-1 bg-indigo-600 text-white p-1 rounded-lg shadow-xl border-2 border-white">
-                            <Activity size={10} />
+                        <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-2 rounded-xl shadow-xl border-2 border-slate-900">
+                            <Activity size={12} />
                         </div>
                     </div>
 
                     {/* Meta Info */}
-                    <div className="flex-1 text-white drop-shadow-md">
-                        <div className="flex items-center gap-3 mb-1">
-                            <h2 className="text-3xl font-black tracking-tight">{patient.name}</h2>
-                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border border-white/20 bg-white/10 backdrop-blur-md`}>
+                    <div className="flex-1 text-white">
+                        <div className="flex items-center gap-4 mb-3">
+                            <h2 className="text-4xl font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-slate-400">{patient.name}</h2>
+                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] border border-slate-700 bg-slate-800/50 backdrop-blur-md text-indigo-400`}>
                                 {patient.patientType || 'OPD'}
                             </span>
                         </div>
-                        <div className="flex items-center gap-6 text-white/80 text-[11px] font-bold uppercase tracking-wider">
-                            <span className="flex items-center gap-1.5"><Shield size={12} className="text-indigo-300" /> CNIC: {patient.cnic || 'Unverified'}</span>
-                            <span className="flex items-center gap-1.5"><Activity size={12} className="text-rose-300" /> {patient.bloodGroup || 'O+'} Positive</span>
-                            <span className="flex items-center gap-1.5 opacity-60 font-mono tracking-tighter bg-black/20 px-2 py-0.5 rounded leading-none pt-1">ID: {patient.patientId}</span>
+                        <div className="flex flex-wrap items-center gap-6 text-slate-400 text-[11px] font-black uppercase tracking-widest">
+                            <span className="flex items-center gap-2"><Shield size={14} className="text-indigo-400" /> CNIC: <span className="text-slate-100 font-mono tracking-tighter">{patient.cnic || 'Unverified'}</span></span>
+                            <span className="flex items-center gap-2"><Activity size={14} className="text-rose-400" /> Blood: <span className="text-slate-100">{patient.bloodGroup || 'O+'}</span></span>
+                            <span className="px-3 py-1 bg-slate-800/80 rounded-full border border-slate-700 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                ID: <span className="text-slate-100 font-mono">{patient.patientId}</span>
+                            </span>
                         </div>
                     </div>
                 </div>
