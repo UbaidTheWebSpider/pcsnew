@@ -169,6 +169,13 @@ const patientSchema = new mongoose.Schema({
         allowResearchUse: { type: Boolean, default: false }
     },
 
+    // Soft Delete
+    isDeleted: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+
     // Encrypted Sensitive Data (Optional migration target)
     encryptedData: {
         cnic: String,

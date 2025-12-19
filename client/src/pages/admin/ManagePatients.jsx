@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../../api/axiosConfig';
 import {
     Users, UserPlus, Search, Trash2, Filter, Eye, CreditCard, RefreshCw,
-    ChevronLeft, ChevronRight, MoreVertical
+    ChevronLeft, ChevronRight, MoreVertical, Edit
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { showSuccess, showError, showConfirm } from '../../utils/sweetalert';
@@ -28,6 +28,8 @@ const ManagePatients = () => {
 
     // Modals & UI State
     const [showForm, setShowForm] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [editingPatientId, setEditingPatientId] = useState(null);
     const [selectedPatientId, setSelectedPatientId] = useState(null); // Profile Modal
     const [healthCardPatient, setHealthCardPatient] = useState(null); // Health Card Modal
 
@@ -89,14 +91,14 @@ const ManagePatients = () => {
 
     const handleDelete = async (id) => {
         const result = await showConfirm(
-            'This action cannot be undone. All patient records will be removed.',
+            'This action cannot be undone. All patient records will be removed from the active system.',
             'Delete Patient?'
         );
 
         if (result.isConfirmed) {
             try {
                 const token = localStorage.getItem('token');
-                await axiosInstance.delete(`/api/users/${id}`, {
+                await axiosInstance.delete(`/api/admin/patients/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 fetchPatients();
@@ -107,24 +109,59 @@ const ManagePatients = () => {
         }
     };
 
+    const handleEdit = (patient) => {
+        setEditMode(true);
+        setEditingPatientId(patient._id);
+        setFormData({
+            name: patient.name || '',
+            cnic: patient.cnic || '',
+            email: patient.contact?.email || patient.email || '',
+            password: '', // Keep empty for security unless they want to change it
+            phone: patient.contact?.phone || '',
+            address: patient.contact?.address || '',
+            dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '',
+            gender: patient.gender || '',
+            patientType: patient.patientType || 'OPD',
+            status: patient.status || 'Active'
+        });
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const resetForm = () => {
+        setShowForm(false);
+        setEditMode(false);
+        setEditingPatientId(null);
+        setFormData({
+            name: '', cnic: '', email: '', password: '', phone: '',
+            address: '', dateOfBirth: '', gender: '',
+            patientType: 'OPD', status: 'Active'
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await axiosInstance.post('/api/users/patients', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setShowForm(false);
-            // Reset Form but keep defaults
-            setFormData({
-                name: '', cnic: '', email: '', password: '', phone: '',
-                address: '', dateOfBirth: '', gender: '',
-                patientType: 'OPD', status: 'Active'
-            });
+
+            if (editMode) {
+                // Update Logic
+                await axiosInstance.put(`/api/admin/patients/${editingPatientId}`, formData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                showSuccess('Patient updated successfully!');
+            } else {
+                // Create Logic
+                await axiosInstance.post('/api/users/patients', formData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                showSuccess('Patient registered successfully!');
+            }
+
+            resetForm();
             fetchPatients();
-            showSuccess('Patient registered successfully!');
         } catch (error) {
-            showError('Failed to register patient: ' + (error.response?.data?.message || 'Unknown error'));
+            showError((editMode ? 'Failed to update' : 'Failed to register') + ' patient: ' + (error.response?.data?.message || 'Unknown error'));
         }
     };
 
@@ -160,10 +197,16 @@ const ManagePatients = () => {
                                 <RefreshCw size={20} />
                             </button>
                             <button
-                                onClick={() => setShowForm(!showForm)}
+                                onClick={() => {
+                                    if (showForm) {
+                                        resetForm();
+                                    } else {
+                                        setShowForm(true);
+                                    }
+                                }}
                                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 shadow-sm transition-all"
                             >
-                                <UserPlus size={20} /> Add New Patient
+                                <UserPlus size={20} /> {showForm && editMode ? 'New Enrollment' : 'Add New Patient'}
                             </button>
                         </div>
                     </div>
@@ -171,7 +214,9 @@ const ManagePatients = () => {
                     {/* Registration Form (Collapsible) */}
                     {showForm && (
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all">
-                            <h2 className="text-lg font-semibold mb-4 text-gray-800">New Patient Registration</h2>
+                            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+                                {editMode ? `Edit Patient: ${formData.name}` : 'New Patient Registration'}
+                            </h2>
                             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {/* Basic Info */}
                                 <input type="text" placeholder="Full Name *" className="input-field" required
@@ -199,14 +244,16 @@ const ManagePatients = () => {
                                 {/* Account */}
                                 <input type="email" placeholder="Email" className="input-field"
                                     value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                                <input type="password" placeholder="Password *" className="input-field" required
+                                <input type="password" placeholder={editMode ? "New Password (Optional)" : "Password *"} className="input-field" required={!editMode}
                                     value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                                 <input type="text" placeholder="Address" className="input-field md:col-span-2 lg:col-span-1"
                                     value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
 
                                 <div className="md:col-span-2 lg:col-span-3 flex justify-end gap-3 mt-2">
-                                    <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-                                    <button type="submit" className="btn-primary">Register Patient</button>
+                                    <button type="button" onClick={resetForm} className="btn-secondary">Cancel</button>
+                                    <button type="submit" className="btn-primary">
+                                        {editMode ? 'Save Changes' : 'Register Patient'}
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -337,6 +384,13 @@ const ManagePatients = () => {
                                                 </td>
                                                 <td className="p-4 text-right">
                                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleEdit(patient)}
+                                                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="Edit Profile"
+                                                        >
+                                                            <Edit size={18} />
+                                                        </button>
                                                         <button
                                                             onClick={() => setSelectedPatientId(patient._id)}
                                                             className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

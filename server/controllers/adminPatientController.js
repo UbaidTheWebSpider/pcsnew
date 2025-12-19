@@ -18,7 +18,7 @@ const getAdminPatients = async (req, res) => {
         } = req.query;
 
         // Build Query
-        const query = {};
+        const query = { isDeleted: false };
 
         // 0. Hospital Context / Data Isolation
         let hospitalId;
@@ -128,7 +128,78 @@ const updatePatientStatus = async (req, res) => {
     }
 };
 
+const updatePatient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        const patient = await Patient.findById(id);
+        if (!patient) {
+            return res.status(404).json({ message: 'Patient not found' });
+        }
+
+        // 1. Update Patient record
+        const updatedPatient = await Patient.findByIdAndUpdate(
+            id,
+            { ...updateData, updatedAt: Date.now() },
+            { new: true, runValidators: true }
+        );
+
+        // 2. Sync with User record if applicable
+        if (updatedPatient.userId) {
+            const userUpdate = {};
+            if (updateData.name) userUpdate.name = updateData.name;
+            if (updateData.email) userUpdate.email = updateData.email;
+            if (updateData.contact) userUpdate.contact = updateData.contact;
+            if (updateData.gender) userUpdate.gender = updateData.gender;
+            if (updateData.dateOfBirth) userUpdate.dateOfBirth = updateData.dateOfBirth;
+            if (updateData.cnic) userUpdate.cnic = updateData.cnic;
+
+            if (Object.keys(userUpdate).length > 0) {
+                await User.findByIdAndUpdate(updatedPatient.userId, userUpdate);
+            }
+        }
+
+        res.json({
+            message: 'Patient profile updated successfully',
+            patient: updatedPatient
+        });
+    } catch (error) {
+        console.error('Error updating patient:', error);
+        res.status(500).json({ message: 'Failed to update patient', error: error.message });
+    }
+};
+
+// @desc    Soft delete patient
+// @route   DELETE /api/admin/patients/:id
+// @access  Private/Admin
+const deletePatient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const patient = await Patient.findById(id);
+
+        if (!patient) {
+            return res.status(404).json({ message: 'Patient not found' });
+        }
+
+        // Soft delete
+        patient.isDeleted = true;
+        patient.status = 'Discharged'; // Logical status update
+        await patient.save();
+
+        // Optional: Log the deletion
+        console.log(`Patient ${id} soft-deleted by ${req.user._id}`);
+
+        res.json({ message: 'Patient removed successfully (soft-deleted)' });
+    } catch (error) {
+        console.error('Error deleting patient:', error);
+        res.status(500).json({ message: 'Failed to delete patient', error: error.message });
+    }
+};
+
 module.exports = {
     getAdminPatients,
-    updatePatientStatus
+    updatePatientStatus,
+    updatePatient,
+    deletePatient
 };
