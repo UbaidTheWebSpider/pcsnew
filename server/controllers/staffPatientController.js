@@ -13,8 +13,13 @@ exports.registerPatient = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        // Sanitize CNIC (Avoid duplicate null/empty conflicts)
+        if (personalInfo && (personalInfo.cnic === '' || personalInfo.cnic === null)) {
+            delete personalInfo.cnic;
+        }
+
         // Check for duplicate CNIC if provided
-        if (personalInfo.cnic) {
+        if (personalInfo?.cnic) {
             const existingPatient = await StaffPatient.findOne({ 'personalInfo.cnic': personalInfo.cnic });
             if (existingPatient) {
                 return res.status(400).json({ success: false, message: 'Patient with this CNIC already exists' });
@@ -133,6 +138,11 @@ exports.updatePatient = async (req, res) => {
 
         if (!patient) {
             return res.status(404).json({ success: false, message: 'Patient not found' });
+        }
+
+        // Sanitize incoming update data
+        if (req.body.personalInfo && (req.body.personalInfo.cnic === '' || req.body.personalInfo.cnic === null)) {
+            delete req.body.personalInfo.cnic;
         }
 
         patient = await StaffPatient.findByIdAndUpdate(req.params.id, req.body, {

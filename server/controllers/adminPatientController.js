@@ -133,9 +133,9 @@ const updatePatient = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        const patient = await Patient.findById(id);
-        if (!patient) {
-            return res.status(404).json({ message: 'Patient not found' });
+        // 1. Sanitize Data (Avoid duplicate null/empty CNIC index issues)
+        if (updateData.cnic === '' || updateData.cnic === null) {
+            delete updateData.cnic;
         }
 
         // 1. Update Patient record

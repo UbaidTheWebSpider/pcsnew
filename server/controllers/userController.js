@@ -62,6 +62,7 @@ const createUser = async (req, res, role) => {
                     contact: user.contact,
                     gender: otherDetails.gender,
                     dateOfBirth: otherDetails.dateOfBirth,
+                    cnic: (otherDetails.cnic === '' || otherDetails.cnic === null) ? undefined : otherDetails.cnic,
                     patientType: otherDetails.patientType || 'OPD',
                     status: otherDetails.status || 'Active',
                     createdBy: req.user._id
