@@ -197,9 +197,125 @@ const deletePatient = async (req, res) => {
     }
 };
 
+// @desc    Get single patient by ID (Admin detailed view)
+// @route   GET /api/admin/patients/:id
+// @access  Private/Admin
+const getAdminPatientById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const patient = await Patient.findById(id).lean();
+
+        if (!patient) {
+            return res.status(404).json({ message: 'Patient not found' });
+        }
+
+        // Sync/Merge with User data for Health ID and latest demographics
+        if (patient.userId) {
+            const user = await User.findById(patient.userId).select('healthId healthCardQr healthCardIssueDate photoUrl email contact gender dateOfBirth').lean();
+            if (user) {
+                return res.json({
+                    ...patient,
+                    email: user.email,
+                    healthId: patient.healthId || user.healthId,
+                    healthCardQr: patient.healthCardQr || user.healthCardQr,
+                    healthCardIssueDate: patient.healthCardIssueDate || user.healthCardIssueDate,
+                    photoUrl: patient.photoUrl || user.photoUrl,
+                    gender: patient.gender || user.gender,
+                    dateOfBirth: patient.dateOfBirth || user.dateOfBirth,
+                    contact: { ...patient.contact, ...user.contact }
+                });
+            }
+        }
+
+        res.json(patient);
+    } catch (error) {
+        console.error('Error fetching patient profile:', error);
+        res.status(500).json({ message: 'Failed to fetch patient details', error: error.message });
+    }
+};
+
+// @desc    Get patient entitlements (Placeholder)
+// @route   GET /api/admin/patients/:id/entitlements
+const getPatientEntitlements = async (req, res) => {
+    try {
+        // In a real system, this would query an insurance or benefits microservice
+        res.json({
+            plan: 'Platinum Care Plan',
+            status: 'active',
+            coverage: 'Full Hospitalization',
+            dependents: [],
+            expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch entitlements' });
+    }
+};
+
+// @desc    Update patient consent (Placeholder)
+// @route   POST /api/admin/patients/:id/consent
+const updatePatientConsent = async (req, res) => {
+    try {
+        const { action, scope } = req.body;
+        // Logic for logging to an immutable ledger would go here
+        res.status(200).json({
+            message: `Consent ${action} for ${scope} updated successfully`,
+            timestamp: new Date()
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update consent' });
+    }
+};
+
+// @desc    Generate Health ID (Admin workflow)
+// @route   POST /api/admin/patients/:id/generate-health-id
+const generateHealthId = async (req, res) => {
+    try {
+        const crypto = require('crypto');
+        const { id } = req.params;
+
+        const patient = await Patient.findById(id);
+        if (!patient) return res.status(404).json({ message: 'Patient not found' });
+
+        // Generate unique Health ID
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = crypto.randomBytes(3).toString('hex').toUpperCase();
+        const healthId = `HID-${timestamp}-${random}`;
+
+        const qrData = JSON.stringify({
+            hid: healthId,
+            pid: patient.patientId,
+            issued: new Date().toISOString()
+        });
+
+        // Update Patient
+        patient.healthId = healthId;
+        patient.healthCardQr = qrData;
+        patient.healthCardIssueDate = new Date();
+        await patient.save();
+
+        // Sync with User
+        if (patient.userId) {
+            await User.findByIdAndUpdate(patient.userId, {
+                healthId,
+                healthCardQr: qrData,
+                healthCardIssueDate: patient.healthCardIssueDate
+            });
+        }
+
+        res.json({ success: true, healthId, qrCode: qrData });
+    } catch (error) {
+        console.error('ID Gen Error:', error);
+        res.status(500).json({ message: 'Failed to generate ID' });
+    }
+};
+
 module.exports = {
     getAdminPatients,
     updatePatientStatus,
     updatePatient,
-    deletePatient
+    deletePatient,
+    getAdminPatientById,
+    getPatientEntitlements,
+    updatePatientConsent,
+    generateHealthId
 };

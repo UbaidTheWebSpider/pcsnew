@@ -10,7 +10,7 @@ const ConsentManager = ({ patientId, currentConsent, onUpdate }) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await axiosInstance.post(`/api/users/patients/${patientId}/consent`,
+            const response = await axiosInstance.post(`/api/admin/patients/${patientId}/consent`,
                 { action, scope, details: `User triggered ${action} for ${scope}` },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -41,8 +41,8 @@ const ConsentManager = ({ patientId, currentConsent, onUpdate }) => {
                 onClick={() => handleConsent(scope, isGranted ? 'REVOKE' : 'GRANT')}
                 disabled={loading}
                 className={`ml-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isGranted
-                        ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                        : 'bg-green-600 text-white hover:bg-green-700'
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                    : 'bg-green-600 text-white hover:bg-green-700'
                     }`}
             >
                 {loading ? 'Processing...' : (isGranted ? 'Revoke' : 'Grant')}

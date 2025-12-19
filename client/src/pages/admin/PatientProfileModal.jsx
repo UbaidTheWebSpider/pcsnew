@@ -36,12 +36,14 @@ const PatientProfileModal = ({ patientId, onClose }) => {
                 className={`relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl transform transition-all duration-300 ${isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'} flex flex-col max-h-[90vh] overflow-hidden border border-white/20`}
             >
                 {/* Header Gradient */}
-                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+                <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-800">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                </div>
 
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full backdrop-blur-md transition-all z-20"
+                    className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-xl transition-all z-30 border border-white/20 shadow-xl"
                 >
                     <X size={20} />
                 </button>
@@ -67,12 +69,12 @@ const ProfileContent = ({ patientId }) => {
                 setError(null);
                 const token = localStorage.getItem('token');
 
-                const { data } = await axiosInstance.get(`/api/users/patients/${patientId}`, {
+                const { data } = await axiosInstance.get(`/api/admin/patients/${patientId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
                 try {
-                    const entData = await axiosInstance.get(`/api/users/patients/${patientId}/entitlements`, {
+                    const entData = await axiosInstance.get(`/api/admin/patients/${patientId}/entitlements`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setPatient({ ...data, entitlementDetails: entData.data });
@@ -94,18 +96,17 @@ const ProfileContent = ({ patientId }) => {
     const handleGenerateHealthId = async () => {
         try {
             const token = localStorage.getItem('token');
-            const { data } = await axiosInstance.post(`/api/users/patients/${patientId}/generate-health-id`, {}, {
+            const { data } = await axiosInstance.post(`/api/admin/patients/${patientId}/generate-health-id`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPatient(prev => ({
                 ...prev,
                 healthId: data.healthId,
                 healthCardQr: data.qrCode,
-                healthCardIssueDate: new Date() // Optimistically update date
+                healthCardIssueDate: new Date()
             }));
         } catch (error) {
             console.error('Error generating ID:', error);
-            // In a real app, show a toast here
         }
     };
 
@@ -147,12 +148,16 @@ const ProfileContent = ({ patientId }) => {
                     </div>
 
                     {/* Info */}
-                    <div className="mb-2 text-white shadow-black drop-shadow-md">
-                        <h2 className="text-3xl font-bold tracking-tight">{patient.name}</h2>
-                        <div className="flex items-center gap-4 text-blue-100 text-sm mt-1">
-                            <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm"><User size={12} /> {patient.gender}</span>
-                            <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm"><Activity size={12} /> {patient.age || 'N/A'} Years</span>
-                            <span className="opacity-75">PID: {patient.patientId}</span>
+                    <div className="mb-2 text-white drop-shadow-lg">
+                        <h2 className="text-4xl font-black tracking-tight leading-tight">{patient.name}</h2>
+                        <div className="flex items-center gap-4 text-white/90 text-sm mt-3">
+                            <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10 font-bold uppercase tracking-wider text-[10px]">
+                                <User size={12} /> {patient.gender}
+                            </span>
+                            <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10 font-bold uppercase tracking-wider text-[10px]">
+                                <Activity size={12} /> {patient.age || 'N/A'} Years
+                            </span>
+                            <span className="opacity-90 font-mono font-bold bg-black/20 px-3 py-1 rounded-full">ID: {patient.patientId}</span>
                         </div>
                     </div>
                 </div>
@@ -188,48 +193,48 @@ const ProfileContent = ({ patientId }) => {
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Card 1 */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                            <h3 className="text-gray-900 font-semibold mb-6 flex items-center gap-2">
-                                <span className="p-2 bg-blue-50 text-blue-600 rounded-lg"><User size={18} /></span> Contact Details
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group">
+                            <h3 className="text-gray-900 font-bold mb-8 flex items-center gap-3">
+                                <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300"><User size={20} /></span> Contact Intelligence
                             </h3>
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <Smartphone className="text-gray-400 mt-1" size={18} />
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all">
+                                    <div className="bg-white p-2 rounded-lg shadow-sm"><Smartphone className="text-blue-500" size={18} /></div>
                                     <div>
-                                        <p className="text-xs text-gray-400 font-medium uppercase">Phone</p>
-                                        <p className="text-gray-700 font-medium">{patient.contact?.phone || 'Not Provided'}</p>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Primary Contact</p>
+                                        <p className="text-gray-800 font-bold">{patient.contact?.phone || 'Not Provided'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3">
-                                    <Mail className="text-gray-400 mt-1" size={18} />
-                                    <div>
-                                        <p className="text-xs text-gray-400 font-medium uppercase">Email</p>
-                                        <p className="text-gray-700 font-medium">{patient.email || patient.contact?.email || 'Not Provided'}</p>
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-indigo-100 hover:bg-indigo-50/30 transition-all">
+                                    <div className="bg-white p-2 rounded-lg shadow-sm"><Mail className="text-indigo-500" size={18} /></div>
+                                    <div className="truncate flex-1">
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Digital Identity</p>
+                                        <p className="text-gray-800 font-bold truncate">{patient.email || patient.contact?.email || 'Not Provided'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3">
-                                    <MapPin className="text-gray-400 mt-1" size={18} />
+                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-purple-100 hover:bg-purple-50/30 transition-all">
+                                    <div className="bg-white p-2 rounded-lg shadow-sm mt-1"><MapPin className="text-purple-500" size={18} /></div>
                                     <div>
-                                        <p className="text-xs text-gray-400 font-medium uppercase">Address</p>
-                                        <p className="text-gray-700 font-medium">{patient.contact?.address || 'Not Provided'}</p>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Registered Address</p>
+                                        <p className="text-gray-800 font-bold line-clamp-2">{patient.contact?.address || 'Not Provided'}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Card 2 */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                            <h3 className="text-gray-900 font-semibold mb-6 flex items-center gap-2">
-                                <span className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Shield size={18} /></span> Identity
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 group">
+                            <h3 className="text-gray-900 font-bold mb-8 flex items-center gap-3">
+                                <span className="p-2.5 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300"><Shield size={20} /></span> Identity Verification
                             </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-xs text-gray-400 font-medium uppercase">CNIC / National ID</p>
-                                    <p className="text-gray-700 font-mono text-lg">{patient.cnic || 'N/A'}</p>
+                            <div className="space-y-8">
+                                <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 shadow-inner">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2">Verified CNIC / National ID</p>
+                                    <p className="text-gray-900 font-mono text-2xl font-black tracking-tighter">{patient.cnic || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-gray-400 font-medium uppercase">Date of Birth</p>
-                                    <p className="text-gray-700">{patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'N/A'}</p>
+                                <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white rounded-2xl border border-blue-50 shadow-inner text-right">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2">Legal Date of Birth</p>
+                                    <p className="text-blue-900 font-bold text-lg">{patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
