@@ -58,7 +58,7 @@ const PatientProfileModal = ({ patientId, onClose }) => {
 const ProfileContent = ({ patientId }) => {
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('healthId'); // Default to Health ID as requested focus
+    const [activeTab, setActiveTab] = useState('overview'); // Default to Overview for clinical focus
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -80,7 +80,7 @@ const ProfileContent = ({ patientId }) => {
                     setPatient({ ...data, entitlementDetails: entData.data });
                 } catch (entError) {
                     console.warn("Could not fetch entitlements, using basic profile", entError);
-                    setPatient(data); // Fallback if entitlements fail
+                    setPatient(data);
                 }
 
             } catch (error) {
@@ -112,129 +112,197 @@ const ProfileContent = ({ patientId }) => {
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center h-96 z-10 bg-white rounded-3xl">
-            <Loader className="animate-spin text-blue-600 mb-4" size={40} />
-            <p className="text-gray-500 font-medium">Loading Profile...</p>
+            <Loader className="animate-spin text-indigo-600 mb-4" size={40} />
+            <p className="text-gray-500 font-medium">Assembling Profile...</p>
         </div>
     );
 
     if (error) return (
         <div className="flex flex-col items-center justify-center h-96 z-10 bg-white rounded-3xl">
-            <p className="text-red-500 font-bold mb-2">Error</p>
-            <p className="text-gray-600">{error}</p>
+            <div className="bg-red-50 p-4 rounded-2xl text-red-600 mb-4"><X size={32} /></div>
+            <p className="text-gray-900 font-black">Connection Error</p>
+            <p className="text-gray-500 text-sm mt-1">{error}</p>
         </div>
     );
 
     if (!patient) return null;
 
     return (
-        <div className="flex flex-col h-full bg-gray-50 rounded-3xl overflow-hidden z-10">
-            {/* Header Profile Section */}
-            <div className="relative px-8 pt-8 pb-4 z-10">
-                <div className="flex items-end gap-6">
-                    {/* Avatar */}
-                    <div className="relative">
-                        <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-lg ring-4 ring-white/50">
+        <div className="flex flex-col h-full bg-slate-50 rounded-3xl overflow-hidden z-10">
+            {/* Professional Header */}
+            <div className="relative px-10 pt-10 pb-6 z-10">
+                <div className="flex items-center gap-8">
+                    {/* Compact Avatar */}
+                    <div className="relative group">
+                        <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-2xl ring-4 ring-white/30 group-hover:ring-indigo-500/20 transition-all duration-500">
                             {patient.photoUrl ? (
                                 <img src={patient.photoUrl} className="w-full h-full object-cover rounded-xl" alt="Profile" />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center text-gray-400">
-                                    <User size={40} />
+                                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-indigo-50 rounded-xl flex items-center justify-center text-indigo-300">
+                                    <User size={32} />
                                 </div>
                             )}
                         </div>
-                        <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1.5 rounded-full shadow-md border-2 border-white">
-                            <CheckCircle size={14} />
+                        <div className="absolute -bottom-1 -right-1 bg-indigo-600 text-white p-1 rounded-lg shadow-xl border-2 border-white">
+                            <Activity size={10} />
                         </div>
                     </div>
 
-                    {/* Info */}
-                    <div className="mb-2 text-white drop-shadow-lg">
-                        <h2 className="text-4xl font-black tracking-tight leading-tight">{patient.name}</h2>
-                        <div className="flex items-center gap-4 text-white/90 text-sm mt-3">
-                            <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10 font-bold uppercase tracking-wider text-[10px]">
-                                <User size={12} /> {patient.gender}
+                    {/* Meta Info */}
+                    <div className="flex-1 text-white drop-shadow-md">
+                        <div className="flex items-center gap-3 mb-1">
+                            <h2 className="text-3xl font-black tracking-tight">{patient.name}</h2>
+                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border border-white/20 bg-white/10 backdrop-blur-md`}>
+                                {patient.patientType || 'OPD'}
                             </span>
-                            <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10 font-bold uppercase tracking-wider text-[10px]">
-                                <Activity size={12} /> {patient.age || 'N/A'} Years
-                            </span>
-                            <span className="opacity-90 font-mono font-bold bg-black/20 px-3 py-1 rounded-full">ID: {patient.patientId}</span>
+                        </div>
+                        <div className="flex items-center gap-6 text-white/80 text-[11px] font-bold uppercase tracking-wider">
+                            <span className="flex items-center gap-1.5"><Shield size={12} className="text-indigo-300" /> CNIC: {patient.cnic || 'Unverified'}</span>
+                            <span className="flex items-center gap-1.5"><Activity size={12} className="text-rose-300" /> {patient.bloodGroup || 'O+'} Positive</span>
+                            <span className="flex items-center gap-1.5 opacity-60 font-mono tracking-tighter bg-black/20 px-2 py-0.5 rounded leading-none pt-1">ID: {patient.patientId}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="px-8 mt-6 border-b border-gray-200 bg-white flex items-center gap-8 overflow-x-auto no-scrollbar">
+            <div className="px-10 border-b border-gray-200 bg-white flex items-center gap-10 overflow-x-auto no-scrollbar">
                 {[
-                    { id: 'healthId', label: 'Digital Health Card', icon: CreditCard },
-                    { id: 'overview', label: 'Overview', icon: User },
-                    { id: 'entitlements', label: 'Entitlements', icon: Sparkles },
-                    { id: 'consent', label: 'Consent & Privacy', icon: Shield },
+                    { id: 'overview', label: 'Clinical Overview', icon: User },
+                    { id: 'healthId', label: 'Digital Health ID', icon: CreditCard },
+                    { id: 'entitlements', label: 'Coverage & Benefits', icon: Sparkles },
+                    { id: 'consent', label: 'Privacy Ledger', icon: Shield },
                 ].map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 py-4 text-sm font-semibold transition-all relative ${activeTab === tab.id
-                            ? 'text-blue-600'
-                            : 'text-gray-500 hover:text-gray-800'
+                        className={`flex items-center gap-2.5 py-5 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab.id
+                            ? 'text-indigo-600'
+                            : 'text-gray-400 hover:text-gray-700'
                             }`}
                     >
-                        <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'} />
+                        <tab.icon size={16} className={activeTab === tab.id ? 'text-indigo-600' : 'text-gray-300'} />
                         {tab.label}
                         {activeTab === tab.id && (
-                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full shadow-[0_-2px_6px_rgba(37,99,235,0.3)]"></span>
+                            <span className="absolute bottom-0 left-0 w-full h-1 bg-indigo-600 rounded-t-full"></span>
                         )}
                     </button>
                 ))}
             </div>
 
-            {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-10 bg-slate-50/50">
                 {activeTab === 'overview' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {/* Card 1 */}
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group">
-                            <h3 className="text-gray-900 font-bold mb-8 flex items-center gap-3">
-                                <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300"><User size={20} /></span> Contact Intelligence
-                            </h3>
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all">
-                                    <div className="bg-white p-2 rounded-lg shadow-sm"><Smartphone className="text-blue-500" size={18} /></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Demographics & Bio */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                                <h3 className="text-indigo-600 font-black text-xs uppercase tracking-[0.2em] mb-8 pb-4 border-b border-indigo-50 flex items-center gap-3">
+                                    <User size={16} /> Demographics & Personal Details
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-6">
                                     <div>
-                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Primary Contact</p>
-                                        <p className="text-gray-800 font-bold">{patient.contact?.phone || 'Not Provided'}</p>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Full Name</p>
+                                        <p className="text-gray-900 font-black text-sm">{patient.name}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Father's Name</p>
+                                        <p className="text-gray-900 font-black text-sm">{patient.fatherName || 'Not Provided'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Biological Sex</p>
+                                        <p className="text-gray-900 font-black text-sm uppercase">{patient.gender || 'Unknown'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Date of Birth</p>
+                                        <p className="text-gray-900 font-black text-sm">{patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Calculated Age</p>
+                                        <p className="text-gray-900 font-black text-sm">{patient.age || '?'} Years</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Blood Group</p>
+                                        <p className="text-rose-600 font-black text-sm">{patient.bloodGroup || 'Not Tested'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-indigo-100 hover:bg-indigo-50/30 transition-all">
-                                    <div className="bg-white p-2 rounded-lg shadow-sm"><Mail className="text-indigo-500" size={18} /></div>
-                                    <div className="truncate flex-1">
-                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Digital Identity</p>
-                                        <p className="text-gray-800 font-bold truncate">{patient.email || patient.contact?.email || 'Not Provided'}</p>
+                            </div>
+
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                                <h3 className="text-indigo-600 font-black text-xs uppercase tracking-[0.2em] mb-8 pb-4 border-b border-indigo-50 flex items-center gap-3">
+                                    <MapPin size={16} /> Contact & Residential Data
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 group">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><Smartphone size={18} /></div>
+                                            <div>
+                                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Primary Phone</p>
+                                                <p className="text-gray-800 font-black text-sm">{patient.contact?.phone || patient.phone || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 group">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><Mail size={18} /></div>
+                                            <div>
+                                                <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Email Address</p>
+                                                <p className="text-gray-800 font-black text-sm">{patient.email || patient.contact?.email || 'No email registered'}</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-purple-100 hover:bg-purple-50/30 transition-all">
-                                    <div className="bg-white p-2 rounded-lg shadow-sm mt-1"><MapPin className="text-purple-500" size={18} /></div>
-                                    <div>
-                                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Registered Address</p>
-                                        <p className="text-gray-800 font-bold line-clamp-2">{patient.contact?.address || 'Not Provided'}</p>
+                                    <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5"><MapPin size={10} /> Street Address</p>
+                                        <p className="text-gray-700 font-bold text-sm leading-relaxed">{patient.contact?.address || 'No residential address on file for this patient record.'}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Card 2 */}
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 group">
-                            <h3 className="text-gray-900 font-bold mb-8 flex items-center gap-3">
-                                <span className="p-2.5 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300"><Shield size={20} /></span> Identity Verification
-                            </h3>
-                            <div className="space-y-8">
-                                <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 shadow-inner">
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2">Verified CNIC / National ID</p>
-                                    <p className="text-gray-900 font-mono text-2xl font-black tracking-tighter">{patient.cnic || 'N/A'}</p>
-                                </div>
-                                <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white rounded-2xl border border-blue-50 shadow-inner text-right">
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2">Legal Date of Birth</p>
-                                    <p className="text-blue-900 font-bold text-lg">{patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'N/A'}</p>
+                        {/* Side Panels */}
+                        <div className="space-y-8">
+                            {/* Emergency Contact */}
+                            <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 rounded-3xl shadow-xl text-white relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10"><Shield size={80} /></div>
+                                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                    <Activity size={14} className="text-indigo-300" /> Emergency Link
+                                </h3>
+                                {patient.emergencyContact?.name ? (
+                                    <div className="space-y-4 relative z-10">
+                                        <div>
+                                            <p className="text-indigo-300 text-[10px] font-black uppercase mb-1">Contact Person</p>
+                                            <p className="text-xl font-black leading-none">{patient.emergencyContact.name}</p>
+                                            <p className="text-indigo-200 text-xs font-bold mt-1 opacity-80">{patient.emergencyContact.relation || 'Relation not specified'}</p>
+                                        </div>
+                                        <div className="pt-4 border-t border-white/10">
+                                            <p className="text-indigo-300 text-[10px] font-black uppercase mb-1">Direct Line</p>
+                                            <p className="text-lg font-mono font-black">{patient.emergencyContact.phone}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-6 text-center opacity-70">
+                                        <p className="text-xs font-bold italic">No emergency contact details provided.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Status Card */}
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                                <h4 className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-6">Patient Lifecycle</h4>
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-gray-600">Current Status</span>
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${patient.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {patient.status || 'Active'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-gray-600">Registration</span>
+                                        <span className="text-xs font-black text-gray-900">{new Date(patient.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="pt-4 border-t border-slate-50">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase">
+                                            <CheckCircle size={10} /> Account Verified
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -243,30 +311,29 @@ const ProfileContent = ({ patientId }) => {
 
                 {activeTab === 'healthId' && (
                     <div className="flex flex-col items-center animate-in scale-95 fade-in duration-300">
-                        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 max-w-2xl w-full flex flex-col items-center">
+                        <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 max-w-2xl w-full flex flex-col items-center">
                             {patient.healthId ? (
                                 <>
-                                    <div className="mb-8 w-full flex justify-center">
+                                    <div className="mb-10 w-full flex justify-center scale-110">
                                         <HealthCard patient={patient} showButtons={true} />
                                     </div>
-                                    <div className="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-                                        <CheckCircle size={16} />
-                                        Active Digital Health ID: <span className="font-mono font-bold">{patient.healthId}</span>
+                                    <div className="bg-indigo-50 border border-indigo-100 text-indigo-700 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3">
+                                        <CheckCircle size={14} /> Registered Health ID: <span className="text-sm font-mono tracking-normal">{patient.healthId}</span>
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-center py-8">
-                                    <div className="relative inline-block mb-6">
-                                        <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-20"></div>
-                                        <div className="bg-blue-50 p-6 rounded-full relative"><CreditCard size={64} className="text-blue-500" /></div>
+                                <div className="text-center py-12">
+                                    <div className="relative inline-block mb-8">
+                                        <div className="absolute inset-0 bg-indigo-100 rounded-full animate-ping opacity-20"></div>
+                                        <div className="bg-indigo-50 p-8 rounded-[2rem] relative shadow-inner"><CreditCard size={64} className="text-indigo-600 outline-none" /></div>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Issue Digital Health Card</h3>
-                                    <p className="text-gray-500 mb-8 max-w-md mx-auto">Generate a secure, cryptographically verifiable Digital Health ID for this patient. This will generate a QR code and Barcode for instant hospital check-ins.</p>
+                                    <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Issue Health ID</h3>
+                                    <p className="text-slate-500 mb-10 max-w-sm mx-auto font-bold text-sm leading-relaxed">Activate cryptographic identity for instant hospital admission and digital record syncing across the network.</p>
                                     <button
                                         onClick={handleGenerateHealthId}
-                                        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all font-medium flex items-center gap-2 mx-auto"
+                                        className="bg-indigo-600 text-white px-10 py-4 rounded-2xl hover:shadow-2xl hover:shadow-indigo-500/40 transition-all font-black uppercase tracking-widest text-[11px] flex items-center gap-3 mx-auto active:scale-95"
                                     >
-                                        <Sparkles size={18} /> Generate Health ID Now
+                                        <Sparkles size={18} /> Provision ID Now
                                     </button>
                                 </div>
                             )}
@@ -275,7 +342,7 @@ const ProfileContent = ({ patientId }) => {
                 )}
 
                 {activeTab === 'consent' && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden min-h-[400px]">
                         <ConsentManager
                             patientId={patient._id}
                             currentConsent={patient.consentId}
@@ -284,33 +351,35 @@ const ProfileContent = ({ patientId }) => {
                 )}
 
                 {activeTab === 'entitlements' && (
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center justify-between mb-8">
+                    <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex items-center justify-between mb-10 pb-6 border-b border-indigo-50">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">Current Coverage</h3>
-                                <p className="text-gray-500">Active insurance plans and entitlements</p>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Coverage Intelligence</h3>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Real-time insurance & benefit verification</p>
                             </div>
-                            <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold uppercase tracking-wide text-sm border border-green-200">
-                                {patient.entitlementDetails?.plan || 'General'}
+                            <span className="bg-emerald-50 text-emerald-700 px-6 py-2 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] border border-emerald-100 shadow-sm">
+                                {patient.entitlementDetails?.plan || 'Standard Care'}
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Stat 1 */}
-                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <p className="text-gray-500 text-xs font-bold uppercase mb-1">Status</p>
-                                <p className="text-lg font-semibold text-gray-900 capitalize">{patient.entitlementDetails?.status || 'Active'}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group">
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 group-hover:text-indigo-600 transition-colors">Entitlement Status</p>
+                                <p className="text-xl font-black text-slate-900 capitalize">{patient.entitlementDetails?.status || 'Active'}</p>
                             </div>
-                            {/* Stat 2 */}
-                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <p className="text-gray-500 text-xs font-bold uppercase mb-1">Tier</p>
-                                <p className="text-lg font-semibold text-gray-900">{patient.entitlementDetails?.coverage || 'Standard'}</p>
+                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group">
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 group-hover:text-indigo-600 transition-colors">Service Tier</p>
+                                <p className="text-xl font-black text-slate-900">{patient.entitlementDetails?.coverage || 'Full Coverage'}</p>
                             </div>
-                            {/* Stat 3 */}
-                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <p className="text-gray-500 text-xs font-bold uppercase mb-1">Dependents</p>
-                                <p className="text-lg font-semibold text-gray-900">{patient.entitlementDetails?.dependents?.length || 0} Linked</p>
+                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group">
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2 group-hover:text-indigo-600 transition-colors">Linked Dependents</p>
+                                <p className="text-xl font-black text-slate-900">{patient.entitlementDetails?.dependents?.length || 0} Records</p>
                             </div>
+                        </div>
+
+                        <div className="mt-10 p-6 bg-indigo-50/30 rounded-2xl border border-indigo-50">
+                            <p className="text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-2">Coverage Notes</p>
+                            <p className="text-slate-600 text-sm font-bold italic">Patient is entitled to standard OPD and IPD services with no prior authorization required for primary care visits.</p>
                         </div>
                     </div>
                 )}

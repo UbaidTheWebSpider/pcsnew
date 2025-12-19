@@ -215,13 +215,13 @@ const getAdminPatientById = async (req, res) => {
             if (user) {
                 return res.json({
                     ...patient,
-                    email: user.email,
+                    email: user.email || patient.contact?.email || patient.email,
                     healthId: patient.healthId || user.healthId,
                     healthCardQr: patient.healthCardQr || user.healthCardQr,
                     healthCardIssueDate: patient.healthCardIssueDate || user.healthCardIssueDate,
                     photoUrl: patient.photoUrl || user.photoUrl,
-                    gender: patient.gender || user.gender,
-                    dateOfBirth: patient.dateOfBirth || user.dateOfBirth,
+                    gender: patient.gender || user.gender || '',
+                    dateOfBirth: patient.dateOfBirth || user.dateOfBirth || '',
                     contact: { ...patient.contact, ...user.contact }
                 });
             }

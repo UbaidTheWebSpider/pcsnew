@@ -114,15 +114,22 @@ const ManagePatients = () => {
         setEditingPatientId(patient._id);
         setFormData({
             name: patient.name || '',
+            fatherName: patient.fatherName || '',
             cnic: patient.cnic || '',
             email: patient.contact?.email || patient.email || '',
-            password: '', // Keep empty for security unless they want to change it
+            password: '',
             phone: patient.contact?.phone || '',
             address: patient.contact?.address || '',
             dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '',
             gender: patient.gender || '',
+            bloodGroup: patient.bloodGroup || '',
             patientType: patient.patientType || 'OPD',
-            status: patient.status || 'Active'
+            status: patient.status || 'Active',
+            emergencyContact: {
+                name: patient.emergencyContact?.name || '',
+                phone: patient.emergencyContact?.phone || '',
+                relation: patient.emergencyContact?.relation || ''
+            }
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -133,9 +140,10 @@ const ManagePatients = () => {
         setEditMode(false);
         setEditingPatientId(null);
         setFormData({
-            name: '', cnic: '', email: '', password: '', phone: '',
-            address: '', dateOfBirth: '', gender: '',
-            patientType: 'OPD', status: 'Active'
+            name: '', fatherName: '', cnic: '', email: '', password: '', phone: '',
+            address: '', dateOfBirth: '', gender: '', bloodGroup: '',
+            patientType: 'OPD', status: 'Active',
+            emergencyContact: { name: '', phone: '', relation: '' }
         });
     };
 
@@ -217,42 +225,81 @@ const ManagePatients = () => {
                             <h2 className="text-lg font-semibold mb-4 text-gray-800">
                                 {editMode ? `Edit Patient: ${formData.name}` : 'New Patient Registration'}
                             </h2>
-                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {/* Basic Info */}
-                                <input type="text" placeholder="Full Name *" className="input-field" required
-                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                                <input type="text" placeholder="CNIC / ID" className="input-field"
-                                    value={formData.cnic} onChange={e => setFormData({ ...formData, cnic: e.target.value })} />
-                                <input type="text" placeholder="Phone *" className="input-field" required
-                                    value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {/* Personal Info */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">Personal Information</h3>
+                                        <input type="text" placeholder="Full Name *" className="input-field" required
+                                            value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                        <input type="text" placeholder="Father's / Guardian Name" className="input-field"
+                                            value={formData.fatherName} onChange={e => setFormData({ ...formData, fatherName: e.target.value })} />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <input type="date" placeholder="DOB" className="input-field"
+                                                value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} />
+                                            <select className="input-field" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
+                                                <option value="">Gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <select className="input-field" value={formData.bloodGroup} onChange={e => setFormData({ ...formData, bloodGroup: e.target.value })}>
+                                            <option value="">Select Blood Group</option>
+                                            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                                <option key={bg} value={bg}>{bg}</option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                                {/* Demographics */}
-                                <input type="date" placeholder="DOB" className="input-field"
-                                    value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} />
-                                <select className="input-field" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
-                                    <option value="">Select Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                <select className="input-field" value={formData.patientType} onChange={e => setFormData({ ...formData, patientType: e.target.value })}>
-                                    <option value="OPD">OPD (Outpatient)</option>
-                                    <option value="IPD">IPD (Inpatient)</option>
-                                    <option value="ER">ER (Emergency)</option>
-                                </select>
+                                    {/* Contact & Bio Info */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">Contact & Identity</h3>
+                                        <input type="text" placeholder="CNIC / ID Number" className="input-field"
+                                            value={formData.cnic} onChange={e => setFormData({ ...formData, cnic: e.target.value })} />
+                                        <input type="text" placeholder="Phone Number *" className="input-field" required
+                                            value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                                        <input type="email" placeholder="Email Address" className="input-field"
+                                            value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                        <input type="text" placeholder="Residential Address" className="input-field"
+                                            value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+                                    </div>
 
-                                {/* Account */}
-                                <input type="email" placeholder="Email" className="input-field"
-                                    value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                                <input type="password" placeholder={editMode ? "New Password (Optional)" : "Password *"} className="input-field" required={!editMode}
-                                    value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
-                                <input type="text" placeholder="Address" className="input-field md:col-span-2 lg:col-span-1"
-                                    value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+                                    {/* System & Emergency */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">System & Emergency</h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <select className="input-field" value={formData.patientType} onChange={e => setFormData({ ...formData, patientType: e.target.value })}>
+                                                <option value="OPD">OPD</option>
+                                                <option value="IPD">IPD</option>
+                                                <option value="ER">ER</option>
+                                            </select>
+                                            <select className="input-field" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
+                                                <option value="Active">Active</option>
+                                                <option value="Discharged">Discharged</option>
+                                                <option value="Deceased">Deceased</option>
+                                            </select>
+                                        </div>
+                                        <input type="password" placeholder={editMode ? "New Password (Optional)" : "Account Password *"} className="input-field" required={!editMode}
+                                            value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Emergency Contact</p>
+                                            <input type="text" placeholder="Name" className="input-field bg-white"
+                                                value={formData.emergencyContact?.name} onChange={e => setFormData({ ...formData, emergencyContact: { ...formData.emergencyContact, name: e.target.value } })} />
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <input type="text" placeholder="Phone" className="input-field bg-white"
+                                                    value={formData.emergencyContact?.phone} onChange={e => setFormData({ ...formData, emergencyContact: { ...formData.emergencyContact, phone: e.target.value } })} />
+                                                <input type="text" placeholder="Relation" className="input-field bg-white"
+                                                    value={formData.emergencyContact?.relation} onChange={e => setFormData({ ...formData, emergencyContact: { ...formData.emergencyContact, relation: e.target.value } })} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                <div className="md:col-span-2 lg:col-span-3 flex justify-end gap-3 mt-2">
+                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                                     <button type="button" onClick={resetForm} className="btn-secondary">Cancel</button>
-                                    <button type="submit" className="btn-primary">
-                                        {editMode ? 'Save Changes' : 'Register Patient'}
+                                    <button type="submit" className="btn-primary px-10">
+                                        {editMode ? 'Update Profile' : 'Register Patient'}
                                     </button>
                                 </div>
                             </form>
@@ -313,13 +360,13 @@ const ManagePatients = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Patient</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Type</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Contact</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Age/Gender</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Status</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm">Registered</th>
-                                        <th className="p-4 font-semibold text-gray-600 text-sm text-right">Actions</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">ID</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Patient Details</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Classification</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Blood</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Created</th>
+                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -344,42 +391,53 @@ const ManagePatients = () => {
                                         </tr>
                                     ) : (
                                         patients.map((patient) => (
-                                            <tr key={patient._id} className="hover:bg-gray-50 transition-colors group">
+                                            <tr key={patient._id} className="hover:bg-gray-50 transition-all group">
                                                 <td className="p-4">
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">{patient.name}</p>
-                                                        <p className="text-xs text-gray-500 font-mono">{patient.patientId || 'Pending ID'}</p>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${patient.patientType === 'ER' ? 'bg-red-50 text-red-700 border-red-200' :
-                                                        patient.patientType === 'IPD' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                                            'bg-blue-50 text-blue-700 border-blue-200'
-                                                        }`}>
-                                                        {patient.patientType || 'OPD'}
+                                                    <span className="font-mono text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 uppercase">
+                                                        {patient.patientId}
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
-                                                    <div className="text-sm text-gray-600">
-                                                        <p>{patient.contact?.phone || 'N/A'}</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs">
+                                                            {patient.name?.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-sm font-black text-gray-900 leading-tight">{patient.name}</div>
+                                                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{patient.contact?.phone || 'No Phone'}</div>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td className="p-4 text-sm text-gray-600">
-                                                    {patient.age || '?'} Y / <span className="capitalize">{patient.gender || '-'}</span>
+                                                <td className="p-4">
+                                                    <div className="flex flex-col">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black inline-block w-fit uppercase border ${patient.patientType === 'ER' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                            patient.patientType === 'IPD' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                                                'bg-blue-50 text-blue-700 border-blue-200'
+                                                            }`}>
+                                                            {patient.patientType || 'OPD'}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400 font-bold uppercase mt-1">{patient.gender || 'Unknown'}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${patient.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
+                                                    {patient.bloodGroup ? (
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+                                                            <span className="w-1 h-1 rounded-full bg-rose-500"></span>
+                                                            {patient.bloodGroup}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-300 font-bold text-xs">-</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${patient.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
                                                         patient.status === 'Discharged' ? 'bg-gray-100 text-gray-600' :
                                                             'bg-red-50 text-red-600'
                                                         }`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${patient.status === 'Active' ? 'bg-emerald-500' :
-                                                            patient.status === 'Discharged' ? 'bg-gray-400' :
-                                                                'bg-red-500'
-                                                            }`}></span>
                                                         {patient.status || 'Active'}
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-sm text-gray-500">
+                                                <td className="p-4 text-[10px] text-gray-500 font-bold uppercase">
                                                     {new Date(patient.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td className="p-4 text-right">
