@@ -94,12 +94,11 @@ const pharmacistSchema = new mongoose.Schema({
 });
 
 // Auto-generate Pharmacist ID
-pharmacistSchema.pre('save', async function (next) {
+pharmacistSchema.pre('save', async function () {
     if (!this.pharmacistId) {
         const count = await this.constructor.countDocuments();
         this.pharmacistId = `PH-${1000 + count + 1}`;
     }
-    next();
 });
 
 // Indexing for performance
