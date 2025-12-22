@@ -38,6 +38,7 @@ app.use('/api/check-in', require('./routes/checkInRoutes'));
 app.use('/api/patients', require('./routes/universalPatientRoutes')); // Universal access for staff
 app.use('/api/admin/patients', require('./routes/adminPatientRoutes')); // Admin Grid API
 app.use('/api/pharmacies', require('./routes/pharmacyRoutes')); // Pharmacy management
+app.use('/api/pharmacists', require('./routes/pharmacistRoutes')); // Pharmacist management
 
 
 app.get('/', (req, res) => {

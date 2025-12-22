@@ -178,6 +178,22 @@ const AdminDashboard = () => {
                                 </p>
                             </div>
                         </Link>
+
+                        <Link to="/admin/pharmacists" className="block group">
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200">
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                        <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        Manage Pharmacists
+                                    </h3>
+                                </div>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    Manage hospital pharmacy staff and assignments.
+                                </p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>

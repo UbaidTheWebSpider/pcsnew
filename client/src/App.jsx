@@ -12,6 +12,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageDoctors from './pages/admin/ManageDoctors';
 import DoctorProfile from './pages/admin/DoctorProfile';
 import ManagePharmacies from './pages/admin/ManagePharmacies';
+import ManagePharmacists from './pages/admin/ManagePharmacists';
 import PharmacyRegistration from './pages/admin/PharmacyRegistration';
 import ManagePatients from './pages/admin/ManagePatients';
 import PatientProfile from './pages/admin/PatientProfile';
@@ -66,6 +67,7 @@ function App() {
               <Route path="/admin/doctors/:id" element={<DoctorProfile />} />
               <Route path="/admin/pharmacies/register" element={<PharmacyRegistration />} />
               <Route path="/admin/pharmacies" element={<ManagePharmacies />} />
+              <Route path="/admin/pharmacists" element={<ManagePharmacists />} />
               <Route path="/admin/patients" element={<ManagePatients />} />
               <Route path="/admin/patient/:id" element={<PatientProfile />} />
             </Route>
