@@ -3,6 +3,7 @@ import { Users, Building2, FileText, Activity, Calendar, DollarSign, UserCheck, 
 import DashboardLayout from '../../components/DashboardLayout';
 import StatCard from '../../components/StatCard';
 import { PatientFlowLineChart, DepartmentBarChart, AdmissionStackedChart } from '../../components/charts';
+import PatientListSidebar from '../../components/PatientListSidebar';
 
 const AdminDashboard = () => {
     // Mock data - in production, fetch from API
@@ -91,7 +92,17 @@ const AdminDashboard = () => {
                         />
                     </div>
 
-                    {/* Analytics Charts Section */}
+                    {/* User Directory Section */}
+                    <div className="mb-8">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                            User Directory
+                        </h2>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-96">
+                            <PatientListSidebar />
+                        </div>
+                    </div>
+
+                    {/* Analytics Overview */}
                     <div className="mb-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                             Analytics Overview
