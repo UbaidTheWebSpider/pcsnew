@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
 import { Users, UserPlus, Calendar, Activity, ClipboardList, ArrowRight } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
+import PatientListSidebar from '../../components/PatientListSidebar';
 
 const StaffDashboard = () => {
     const [stats, setStats] = useState(null);
@@ -156,14 +157,9 @@ const StaffDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Recent Activity */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-                        <div className="text-center py-8 text-gray-500">
-                            <Activity className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                            <p>No recent activity</p>
-                            <p className="text-sm mt-1">Patient registrations and check-ins will appear here</p>
-                        </div>
+                    {/* Recent Registrations */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-96">
+                        <PatientListSidebar />
                     </div>
                 </div>
             </div>
