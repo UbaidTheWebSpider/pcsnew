@@ -19,8 +19,13 @@ const createPharmacist = async (req, res) => {
             return res.status(400).json({ message: 'Registration number already exists' });
         }
 
+        const pharmacistData = { ...req.body };
+        if (pharmacistData.assignment?.assignedPharmacy === '') {
+            pharmacistData.assignment.assignedPharmacy = null;
+        }
+
         const pharmacist = await Pharmacist.create({
-            ...req.body,
+            ...pharmacistData,
             createdBy: req.user._id
         });
 
@@ -96,9 +101,14 @@ const updatePharmacist = async (req, res) => {
             return res.status(404).json({ message: 'Pharmacist not found' });
         }
 
+        const updateData = { ...req.body };
+        if (updateData.assignment?.assignedPharmacy === '') {
+            updateData.assignment.assignedPharmacy = null;
+        }
+
         const updatedPharmacist = await Pharmacist.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
 
