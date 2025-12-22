@@ -20,27 +20,8 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const userData = await register(formData);
-            // Redirect based on user role
-            switch (userData.role) {
-                case 'hospital_admin':
-                    navigate('/admin');
-                    break;
-                case 'doctor':
-                    navigate('/doctor');
-                    break;
-                case 'patient':
-                    navigate('/patient');
-                    break;
-                case 'hospital_staff':
-                    navigate('/staff');
-                    break;
-                case 'pharmacy':
-                    navigate('/pharmacy');
-                    break;
-                default:
-                    navigate('/');
-            }
+            await register(formData);
+            navigate('/login');
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
         }
