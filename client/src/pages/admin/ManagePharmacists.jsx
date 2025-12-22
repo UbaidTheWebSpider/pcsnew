@@ -460,6 +460,13 @@ const ManagePharmacists = () => {
                                                 <td className="p-4 text-right">
                                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
+                                                            onClick={() => setViewingPharmacist(pharmacist)}
+                                                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="View Profile"
+                                                        >
+                                                            <Eye size={18} />
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleEdit(pharmacist)}
                                                             className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                             title="Edit Profile"
@@ -507,6 +514,168 @@ const ManagePharmacists = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Profile View Modal */}
+            {viewingPharmacist && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        {/* Modal Header */}
+                        <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-700 p-6">
+                            <button
+                                onClick={() => setViewingPharmacist(null)}
+                                className="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                            >
+                                <ChevronRight className="rotate-45" size={20} />
+                            </button>
+                            <div className="flex items-end gap-6 h-full translate-y-12">
+                                <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-lg border-4 border-white">
+                                    <div className="w-full h-full rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-3xl uppercase">
+                                        {viewingPharmacist.fullName?.charAt(0)}
+                                    </div>
+                                </div>
+                                <div className="mb-2">
+                                    <div className="text-2xl font-black text-white drop-shadow-sm">{viewingPharmacist.fullName}</div>
+                                    <div className="flex items-center gap-2 text-white/90 font-bold text-xs uppercase tracking-widest mt-1">
+                                        <span className="bg-white/20 px-2 py-0.5 rounded uppercase">{viewingPharmacist.pharmacistId}</span>
+                                        <span>•</span>
+                                        <span>{viewingPharmacist.professionalDetails?.qualification}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-8 pt-16 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
+                            {/* Left Column: Professional */}
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <GraduationCap size={14} /> Professional Details
+                                    </h4>
+                                    <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500 font-medium">Registration No:</span>
+                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.registrationNumber}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500 font-medium">Experience:</span>
+                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.yearsOfExperience} Years</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500 font-medium">License Expiry:</span>
+                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.licenseExpiryDate ? new Date(viewingPharmacist.professionalDetails.licenseExpiryDate).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        {viewingPharmacist.professionalDetails?.specialization && (
+                                            <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                                                <span className="text-gray-500 font-medium">Specialization:</span>
+                                                <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.specialization}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Briefcase size={14} /> Workplace Assignment
+                                    </h4>
+                                    <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-gray-500 font-medium text-[10px] uppercase">Pharmacy</span>
+                                            <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.assignedPharmacy?.basicProfile?.pharmacyName || 'Not Assigned'}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 pt-2">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-gray-500 font-medium text-[10px] uppercase">Shift</span>
+                                                <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.shift}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1 text-right">
+                                                <span className="text-gray-500 font-medium text-[10px] uppercase">Employment</span>
+                                                <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.employmentType}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Contact & Personal */}
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Phone size={14} /> Contact Information
+                                    </h4>
+                                    <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="flex gap-3">
+                                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Mail size={16} /></div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Email</span>
+                                                <span className="text-sm text-gray-900 font-bold break-all">{viewingPharmacist.contact?.email}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Phone size={16} /></div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Phone</span>
+                                                <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.contact?.phoneNumber}</span>
+                                            </div>
+                                        </div>
+                                        {viewingPharmacist.contact?.address && (
+                                            <div className="flex gap-3">
+                                                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><MapPin size={16} /></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-gray-400 font-bold uppercase">Address</span>
+                                                    <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.contact?.address}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3">Other Details</h4>
+                                    <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Gender</span>
+                                            <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.gender}</span>
+                                        </div>
+                                        <div className="flex flex-col text-right">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Date of Birth</span>
+                                            <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.dateOfBirth ? new Date(viewingPharmacist.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        <div className="col-span-2 pt-2 border-t border-gray-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Account Status</span>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${viewingPharmacist.assignment?.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                    {viewingPharmacist.assignment?.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => setViewingPharmacist(null)}
+                                className="bg-white text-gray-700 font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors shadow-sm"
+                            >
+                                Close Profile
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const p = viewingPharmacist;
+                                    setViewingPharmacist(null);
+                                    handleEdit(p);
+                                }}
+                                className="bg-blue-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                            >
+                                Edit Record
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style jsx>{`
                 .input-field {
