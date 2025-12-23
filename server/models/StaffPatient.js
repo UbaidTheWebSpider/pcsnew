@@ -44,6 +44,19 @@ const staffPatientSchema = new mongoose.Schema({
         currentMedications: [String],
         notes: String
     },
+    // Health ID Fields (for Digital Health Card)
+    healthId: {
+        type: String,
+        unique: true,
+        sparse: true, // Allows null/undefined for existing records
+        index: true
+    },
+    healthCardQr: {
+        type: String, // QR code data (JSON string)
+    },
+    healthCardIssueDate: {
+        type: Date,
+    },
     // Meta Fields
     hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Link to Hospital
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Staff who registered

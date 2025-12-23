@@ -179,3 +179,63 @@ exports.deletePatient = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server Error deleting patient' });
     }
 };
+
+// @desc    Generate Health ID for patient
+// @route   POST /api/staff/patients/:id/generate-health-id
+// @access  Private
+exports.generateHealthId = async (req, res) => {
+    try {
+        const crypto = require('crypto');
+        const { id } = req.params;
+
+        const patient = await StaffPatient.findById(id);
+        if (!patient) {
+            return res.status(404).json({ success: false, message: 'Patient not found' });
+        }
+
+        // Check if health ID already exists
+        if (patient.healthId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Health ID already exists for this patient',
+                healthId: patient.healthId
+            });
+        }
+
+        // Generate unique Health ID
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = crypto.randomBytes(3).toString('hex').toUpperCase();
+        const healthId = `HID-${timestamp}-${random}`;
+
+        // Create QR code data
+        const qrData = JSON.stringify({
+            hid: healthId,
+            pid: patient.patientId,
+            name: patient.personalInfo?.fullName,
+            issued: new Date().toISOString()
+        });
+
+        // Update patient with health ID
+        patient.healthId = healthId;
+        patient.healthCardQr = qrData;
+        patient.healthCardIssueDate = new Date();
+        await patient.save();
+
+        console.log(`Health ID generated for patient ${id}: ${healthId}`);
+
+        res.status(200).json({
+            success: true,
+            healthId,
+            qrCode: qrData,
+            message: 'Health ID generated successfully'
+        });
+
+    } catch (error) {
+        console.error('Generate Health ID Error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error generating Health ID',
+            error: error.message
+        });
+    }
+};

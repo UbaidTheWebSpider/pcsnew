@@ -18,9 +18,11 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
         gender: staffPatient.personalInfo?.gender || 'N/A',
         dateOfBirth: staffPatient.personalInfo?.dateOfBirth,
         bloodGroup: staffPatient.personalInfo?.bloodGroup,
+        photoUrl: staffPatient.personalInfo?.photoUrl || null,
         age: staffPatient.personalInfo?.dateOfBirth
             ? calculateAge(staffPatient.personalInfo.dateOfBirth)
             : null,
+        email: staffPatient.contactInfo?.email || 'N/A',
         contact: {
             phone: staffPatient.contactInfo?.mobileNumber || 'N/A',
             address: staffPatient.contactInfo?.address || 'N/A',
@@ -31,6 +33,11 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
             phone: staffPatient.contactInfo?.emergencyContact?.phone || 'N/A',
             relation: staffPatient.contactInfo?.emergencyContact?.relation || 'N/A'
         },
+        // Health Card Fields
+        healthId: staffPatient.healthId || null,
+        healthCardQr: staffPatient.healthCardQr || null,
+        healthCardIssueDate: staffPatient.healthCardIssueDate || null,
+        // Other fields
         admissionDetails: staffPatient.admissionDetails,
         medicalBackground: staffPatient.medicalBackground,
         medicalInfo: staffPatient.medicalBackground, // Alias for compatibility

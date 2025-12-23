@@ -6,7 +6,8 @@ const {
     getAllPatients,
     getPatientById,
     updatePatient,
-    deletePatient
+    deletePatient,
+    generateHealthId
 } = require('../controllers/staffPatientController');
 
 // All routes are protected and for hospital staff/admin
@@ -18,5 +19,6 @@ router.get('/', getAllPatients);
 router.get('/:id', getPatientById);
 router.put('/:id', updatePatient);
 router.delete('/:id', deletePatient);
+router.post('/:id/generate-health-id', generateHealthId);
 
 module.exports = router;

@@ -70,7 +70,7 @@ const DigitalHealthCards = () => {
     const handleGenerateHealthId = async (patientId) => {
         try {
             const token = localStorage.getItem('token');
-            const { data } = await axiosInstance.post(`/api/users/patients/${patientId}/generate-health-id`, {}, {
+            const { data } = await axiosInstance.post(`/api/staff/patients/${patientId}/generate-health-id`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -84,7 +84,8 @@ const DigitalHealthCards = () => {
             fetchPatients(); // Refresh list
         } catch (error) {
             console.error('Error generating health ID:', error);
-            Swal.fire('Error', 'Failed to generate Health ID', 'error');
+            const errorMessage = error.response?.data?.message || 'Failed to generate Health ID';
+            Swal.fire('Error', errorMessage, 'error');
         }
     };
 
