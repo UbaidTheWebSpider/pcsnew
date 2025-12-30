@@ -22,8 +22,42 @@ exports.authorizePharmacyRole = (...roles) => {
                 if (globalRolesEligible.includes(req.user.role)) {
                     console.log(`[PharmacyAuth] Auto-fixing association for ${req.user.email} (Global Role: ${req.user.role})`);
 
-                    const pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
+                    let pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
                         || await Pharmacy.findOne();
+
+                    if (!pharmacy) {
+                        console.log('[PharmacyAuth] No pharmacy found. Creating default "System Central Pharmacy"...');
+                        try {
+                            pharmacy = await Pharmacy.create({
+                                basicProfile: {
+                                    pharmacyName: 'System Central Pharmacy',
+                                    pharmacyType: 'OPD Pharmacy',
+                                    hospitalBranch: 'Main',
+                                    pharmacyCode: 'PHA-CENTRAL-001',
+                                    operationalStatus: 'Active'
+                                },
+                                licensing: {
+                                    licenseNumber: 'LIC-CENTRAL-001',
+                                    licenseExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 10))
+                                },
+                                assignedPharmacist: {
+                                    chiefPharmacist: req.user._id,
+                                    registrationNumber: 'REG-CENTRAL-001'
+                                },
+                                physicalLocation: {
+                                    floor: 'Ground',
+                                    wing: 'A'
+                                },
+                                approvalWorkflow: {
+                                    registeredBy: req.user._id,
+                                    approvalStatus: 'Approved'
+                                }
+                            });
+                            console.log(`[PharmacyAuth] Created default pharmacy: ${pharmacy.basicProfile.pharmacyName}`);
+                        } catch (createErr) {
+                            console.error('[PharmacyAuth] CRITICAL: Failed to create default pharmacy:', createErr.message);
+                        }
+                    }
 
                     if (pharmacy) {
                         if (!pharmacyUser) {
@@ -47,12 +81,22 @@ exports.authorizePharmacyRole = (...roles) => {
                 }
             }
 
-            // 3. Final Check
-            if (!pharmacyUser || pharmacyUser.status !== 'active') {
-                console.warn(`[PharmacyAuth] No active pharmacy association found for user: ${req.user.email} (${req.user._id})`);
+            // 3. Final Check with Detailed Error Messages
+            if (!pharmacyUser) {
                 return res.status(403).json({
                     success: false,
-                    message: 'No active pharmacy association found. Please contact administrator.'
+                    message: 'Access Denied: No pharmacy association found for your account.',
+                    reason: 'NO_ASSOCIATION',
+                    userRole: req.user.role
+                });
+            }
+
+            if (pharmacyUser.status !== 'active') {
+                return res.status(403).json({
+                    success: false,
+                    message: `Access Denied: Your pharmacy account status is currently ${pharmacyUser.status}.`,
+                    reason: 'INACTIVE_STATUS',
+                    status: pharmacyUser.status
                 });
             }
 
@@ -71,7 +115,10 @@ exports.authorizePharmacyRole = (...roles) => {
                 console.warn(`[PharmacyAuth] Access denied. User role ${pharmacyUser.pharmacyRole} not in ${roles}`);
                 return res.status(403).json({
                     success: false,
-                    message: `Access denied. Required role: ${roles.join(' or ')}`
+                    message: `Access denied. Required role: ${roles.join(' or ')}`,
+                    reason: 'ROLE_MISMATCH',
+                    requiredRoles: roles,
+                    yourRole: pharmacyUser.pharmacyRole
                 });
             }
 
@@ -85,7 +132,7 @@ exports.authorizePharmacyRole = (...roles) => {
             console.error('Authorization error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Authorization error',
+                message: 'Internal Authorization Error',
                 error: error.message
             });
         }

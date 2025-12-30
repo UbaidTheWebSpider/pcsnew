@@ -19,16 +19,32 @@ const fixPharmacyAssociations = async () => {
         console.log('\n--- Checking Pharmacy ---');
         let pharmacy = await Pharmacy.findOne();
         if (!pharmacy) {
-            console.log('No pharmacy found. Creating default "Central Hospital Pharmacy"...');
+            console.log('No pharmacy found. Creating default valid pharmacy...');
+            const adminUser = await User.findOne({ role: 'hospital_admin' });
             pharmacy = await Pharmacy.create({
                 basicProfile: {
                     pharmacyName: 'Central Hospital Pharmacy',
-                    licenseNumber: 'L-DEFAULT-001',
-                    pharmacyType: 'Hospital Pharmacy',
-                    email: 'pharmacy@hospital.com',
-                    phone: '0000000000'
+                    pharmacyType: 'OPD Pharmacy',
+                    hospitalBranch: 'Main',
+                    pharmacyCode: 'PHA-CENTRAL-001',
+                    operationalStatus: 'Active'
                 },
-                status: 'approved'
+                licensing: {
+                    licenseNumber: 'LIC-CENTRAL-001',
+                    licenseExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 10))
+                },
+                assignedPharmacist: {
+                    chiefPharmacist: adminUser?._id || (await User.findOne())?._id,
+                    registrationNumber: 'REG-CENTRAL-001'
+                },
+                physicalLocation: {
+                    floor: 'Ground',
+                    wing: 'A'
+                },
+                approvalWorkflow: {
+                    registeredBy: adminUser?._id || (await User.findOne())?._id,
+                    approvalStatus: 'Approved'
+                }
             });
             console.log(`Created Pharmacy: ${pharmacy.basicProfile.pharmacyName} (${pharmacy._id})`);
         } else {
@@ -36,10 +52,10 @@ const fixPharmacyAssociations = async () => {
         }
 
         // 2. Find all users who SHOULD be pharmacy users
-        // Target: users with role 'pharmacy' OR 'hospital_admin'
-        console.log('\n--- Checking Users with role "pharmacy" or "hospital_admin" ---');
+        // Target: users with relevant global roles
+        console.log('\n--- Checking Eligible Users ---');
         const pharmacyUsers = await User.find({
-            role: { $in: ['pharmacy', 'hospital_admin'] }
+            role: { $in: ['pharmacy', 'hospital_admin', 'hospital_staff', 'pharmacist', 'super_admin'] }
         });
         console.log(`Found ${pharmacyUsers.length} potential pharmacy users.`);
 
