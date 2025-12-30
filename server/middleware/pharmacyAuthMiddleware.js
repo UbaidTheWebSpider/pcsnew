@@ -5,43 +5,68 @@ const Pharmacy = require('../models/Pharmacy');
 exports.authorizePharmacyRole = (...roles) => {
     return async (req, res, next) => {
         try {
-            // Find pharmacy user
+            if (!req.user) {
+                return res.status(401).json({ success: false, message: 'Not authenticated' });
+            }
+
+            // 1. Try to find existing association
             let pharmacyUser = await PharmacyUser.findOne({
                 userId: req.user._id,
-                status: 'active',
                 isDeleted: false
             });
 
-            // Self-healing: If no association, try to create one for admin/pharmacy roles
-            if (!pharmacyUser && ['pharmacy', 'hospital_admin', 'pharmacist', 'super_admin'].includes(req.user.role)) {
-                console.log(`[PharmacyAuth] No association found for ${req.user.email} (${req.user.role}). Attempting self-healing...`);
+            // 2. Self-healing: If no active association exists, but user has global role, create/activate one
+            const globalRolesEligible = ['pharmacy', 'hospital_admin', 'hospital_staff', 'pharmacist', 'super_admin'];
 
-                let pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
-                    || await Pharmacy.findOne();
+            if (!pharmacyUser || pharmacyUser.status !== 'active') {
+                if (globalRolesEligible.includes(req.user.role)) {
+                    console.log(`[PharmacyAuth] Auto-fixing association for ${req.user.email} (Global Role: ${req.user.role})`);
 
-                if (pharmacy) {
-                    pharmacyUser = await PharmacyUser.create({
-                        userId: req.user._id,
-                        pharmacyId: pharmacy._id,
-                        pharmacyRole: 'pharmacy_admin', // Default to admin for higher roles
-                        status: 'active',
-                        permissions: ['all']
-                    });
-                    console.log(`[PharmacyAuth] Auto-created association for ${req.user.email} to ${pharmacy.basicProfile.pharmacyName}`);
+                    const pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
+                        || await Pharmacy.findOne();
+
+                    if (pharmacy) {
+                        if (!pharmacyUser) {
+                            // Create new
+                            pharmacyUser = await PharmacyUser.create({
+                                userId: req.user._id,
+                                pharmacyId: pharmacy._id,
+                                pharmacyRole: 'pharmacy_admin',
+                                status: 'active',
+                                permissions: ['all']
+                            });
+                        } else {
+                            // Update existing (suspended or inactive)
+                            pharmacyUser.status = 'active';
+                            pharmacyUser.pharmacyRole = 'pharmacy_admin';
+                            pharmacyUser.pharmacyId = pharmacy._id; // Ensure they follow the default pharmacy
+                            await pharmacyUser.save();
+                        }
+                        console.log(`[PharmacyAuth] SUCCESS: Association auto-fixed for ${req.user.email}`);
+                    }
                 }
             }
 
-            if (!pharmacyUser) {
-                console.warn(`[PharmacyAuth] No active pharmacy association found for user: ${req.user._id}`);
+            // 3. Final Check
+            if (!pharmacyUser || pharmacyUser.status !== 'active') {
+                console.warn(`[PharmacyAuth] No active pharmacy association found for user: ${req.user.email} (${req.user._id})`);
                 return res.status(403).json({
                     success: false,
-                    message: 'No active pharmacy association found'
+                    message: 'No active pharmacy association found. Please contact administrator.'
                 });
             }
 
-            console.log(`[PharmacyAuth] User ${req.user._id} has role ${pharmacyUser.pharmacyRole}. Allowed roles: ${roles}`);
+            console.log(`[PharmacyAuth] Authorized: ${req.user.email} | Pharmacy Role: ${pharmacyUser.pharmacyRole} | Allowed: ${roles}`);
 
-            // Check if user's role is in allowed roles
+            // 4. Role Authorization
+            // Admin role bypasses all checks
+            if (pharmacyUser.pharmacyRole === 'pharmacy_admin') {
+                req.pharmacyUser = pharmacyUser;
+                req.pharmacyRole = pharmacyUser.pharmacyRole;
+                req.pharmacyId = pharmacyUser.pharmacyId;
+                return next();
+            }
+
             if (!roles.includes(pharmacyUser.pharmacyRole)) {
                 console.warn(`[PharmacyAuth] Access denied. User role ${pharmacyUser.pharmacyRole} not in ${roles}`);
                 return res.status(403).json({

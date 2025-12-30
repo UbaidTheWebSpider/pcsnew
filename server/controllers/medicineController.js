@@ -172,8 +172,9 @@ const deleteMedicine = async (req, res) => {
 // @access  Private/Pharmacy
 const getLowStock = async (req, res) => {
     try {
+        const pharmacyId = req.pharmacyId || req.user._id;
         const medicines = await Medicine.find({
-            pharmacyId: req.user._id,
+            pharmacyId,
             isActive: true,
         });
 
@@ -197,8 +198,9 @@ const getExpiring = async (req, res) => {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + parseInt(days));
 
+        const pharmacyId = req.pharmacyId || req.user._id;
         const medicines = await Medicine.find({
-            pharmacyId: req.user._id,
+            pharmacyId,
             isActive: true,
             'batches.expDate': { $lte: expiryDate, $gte: new Date() },
         });
