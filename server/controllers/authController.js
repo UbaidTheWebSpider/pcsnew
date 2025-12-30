@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const PharmacyUser = require('../models/PharmacyUser');
+const Pharmacy = require('../models/Pharmacy');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -57,6 +59,43 @@ const loginUser = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {
+
+            // Self-healing: Ensure pharmacy association for relevant roles
+            if (['pharmacy', 'hospital_admin', 'pharmacist'].includes(user.role)) {
+                try {
+                    let pharmacyUser = await PharmacyUser.findOne({ userId: user._id });
+
+                    if (!pharmacyUser) {
+                        console.log(`[Auth] Creating missing pharmacy association for ${user.email}`);
+
+                        // Find a default pharmacy
+                        let pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
+                            || await Pharmacy.findOne(); // Fallback to any pharmacy
+
+                        if (pharmacy) {
+                            await PharmacyUser.create({
+                                userId: user._id,
+                                pharmacyId: pharmacy._id,
+                                pharmacyRole: user.role === 'hospital_admin' ? 'pharmacy_admin' : 'pharmacy_admin', // Default role
+                                status: 'active',
+                                permissions: ['all']
+                            });
+                            console.log(`[Auth] Successfully linked ${user.email} to ${pharmacy.basicProfile.pharmacyName}`);
+                        } else {
+                            console.warn('[Auth] No pharmacy found to link user');
+                        }
+                    } else if (pharmacyUser.status !== 'active') {
+                        // Reactivate if needed
+                        console.log(`[Auth] Reactivating pharmacy user for ${user.email}`);
+                        pharmacyUser.status = 'active';
+                        await pharmacyUser.save();
+                    }
+                } catch (err) {
+                    console.error('[Auth] Error ensuring pharmacy association:', err);
+                    // Don't block login, but log error
+                }
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,
