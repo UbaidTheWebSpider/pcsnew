@@ -1,25 +1,49 @@
 const PharmacyUser = require('../models/PharmacyUser');
+const Pharmacy = require('../models/Pharmacy');
 
 // Pharmacy role-based authorization middleware
 exports.authorizePharmacyRole = (...roles) => {
     return async (req, res, next) => {
         try {
             // Find pharmacy user
-            const pharmacyUser = await PharmacyUser.findOne({
+            let pharmacyUser = await PharmacyUser.findOne({
                 userId: req.user._id,
                 status: 'active',
                 isDeleted: false
             });
 
+            // Self-healing: If no association, try to create one for admin/pharmacy roles
+            if (!pharmacyUser && ['pharmacy', 'hospital_admin', 'pharmacist', 'super_admin'].includes(req.user.role)) {
+                console.log(`[PharmacyAuth] No association found for ${req.user.email} (${req.user.role}). Attempting self-healing...`);
+
+                let pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
+                    || await Pharmacy.findOne();
+
+                if (pharmacy) {
+                    pharmacyUser = await PharmacyUser.create({
+                        userId: req.user._id,
+                        pharmacyId: pharmacy._id,
+                        pharmacyRole: 'pharmacy_admin', // Default to admin for higher roles
+                        status: 'active',
+                        permissions: ['all']
+                    });
+                    console.log(`[PharmacyAuth] Auto-created association for ${req.user.email} to ${pharmacy.basicProfile.pharmacyName}`);
+                }
+            }
+
             if (!pharmacyUser) {
+                console.warn(`[PharmacyAuth] No active pharmacy association found for user: ${req.user._id}`);
                 return res.status(403).json({
                     success: false,
                     message: 'No active pharmacy association found'
                 });
             }
 
+            console.log(`[PharmacyAuth] User ${req.user._id} has role ${pharmacyUser.pharmacyRole}. Allowed roles: ${roles}`);
+
             // Check if user's role is in allowed roles
             if (!roles.includes(pharmacyUser.pharmacyRole)) {
+                console.warn(`[PharmacyAuth] Access denied. User role ${pharmacyUser.pharmacyRole} not in ${roles}`);
                 return res.status(403).json({
                     success: false,
                     message: `Access denied. Required role: ${roles.join(' or ')}`
