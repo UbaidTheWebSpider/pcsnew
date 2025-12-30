@@ -40,6 +40,13 @@ app.use('/api/admin/patients', require('./routes/adminPatientRoutes')); // Admin
 app.use('/api/pharmacies', require('./routes/pharmacyRoutes')); // Pharmacy management
 app.use('/api/pharmacists', require('./routes/pharmacistRoutes')); // Pharmacist management
 
+// Pharmacy Module Routes (New Enterprise System)
+app.use('/api/pharmacy/auth', require('./routes/pharmacyAuthRoutes')); // Pharmacy authentication
+app.use('/api/pharmacy/dashboard', require('./routes/pharmacyDashboardRoutes')); // Dashboard & KPIs
+app.use('/api/pharmacy/inventory', require('./routes/pharmacyInventoryRoutes')); // Inventory management
+app.use('/api/pharmacy/prescriptions', require('./routes/pharmacyPrescriptionRoutes')); // Prescription fulfillment
+app.use('/api/pharmacy/pos', require('./routes/pharmacyPOSRoutes')); // Point of Sale
+
 
 app.get('/', (req, res) => {
   res.send('Telemedicine API is running...');

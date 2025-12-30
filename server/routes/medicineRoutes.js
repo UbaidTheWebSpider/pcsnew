@@ -10,24 +10,28 @@ const {
     getExpiring,
     addBatch,
 } = require('../controllers/medicineController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
+const { authorizePharmacyRole, attachPharmacyContext } = require('../middleware/pharmacyAuthMiddleware');
+
+router.use(protect);
+router.use(attachPharmacyContext);
 
 router.route('/')
-    .post(protect, authorize('pharmacy'), addMedicine)
-    .get(protect, authorize('pharmacy'), getMedicines);
+    .post(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'inventory_manager'), addMedicine)
+    .get(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'pharmacist', 'inventory_manager', 'auditor'), getMedicines);
 
 router.route('/alerts/low-stock')
-    .get(protect, authorize('pharmacy'), getLowStock);
+    .get(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'inventory_manager', 'pharmacist'), getLowStock);
 
 router.route('/alerts/expiring')
-    .get(protect, authorize('pharmacy'), getExpiring);
+    .get(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'inventory_manager', 'pharmacist'), getExpiring);
 
 router.route('/:id')
-    .get(protect, authorize('pharmacy'), getMedicineById)
-    .put(protect, authorize('pharmacy'), updateMedicine)
-    .delete(protect, authorize('pharmacy'), deleteMedicine);
+    .get(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'pharmacist', 'inventory_manager', 'auditor'), getMedicineById)
+    .put(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'inventory_manager'), updateMedicine)
+    .delete(authorizePharmacyRole('pharmacy', 'pharmacy_admin'), deleteMedicine);
 
 router.route('/:id/batches')
-    .post(protect, authorize('pharmacy'), addBatch);
+    .post(authorizePharmacyRole('pharmacy', 'pharmacy_admin', 'inventory_manager'), addBatch);
 
 module.exports = router;

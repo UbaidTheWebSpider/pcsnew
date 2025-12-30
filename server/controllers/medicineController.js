@@ -6,8 +6,20 @@ const StockMovement = require('../models/StockMovement');
 // @access  Private/Pharmacy
 const addMedicine = async (req, res) => {
     try {
+        console.log('Entering addMedicine controller');
         const { name, genericName, manufacturer, category, strength, form, price, batches, reorderLevel, barcode } = req.body;
 
+        // Determine pharmacy ID - support both old system (user._id) and new pharmacy module
+        let pharmacyId = req.user._id; // Default to user ID for backward compatibility
+        console.log('Initial pharmacyId:', pharmacyId);
+
+        // If using new pharmacy module, get pharmacy ID from context
+        if (req.pharmacyId) {
+            console.log('Using new pharmacyId from context:', req.pharmacyId);
+            pharmacyId = req.pharmacyId;
+        }
+
+        console.log('Creating Medicine document...');
         const medicine = await Medicine.create({
             name,
             genericName,
@@ -19,8 +31,9 @@ const addMedicine = async (req, res) => {
             batches: batches || [],
             reorderLevel,
             barcode,
-            pharmacyId: req.user._id,
+            pharmacyId,
         });
+        console.log('Medicine created successfully:', medicine._id);
 
         // Log stock movement for initial batches
         if (batches && batches.length > 0) {
@@ -28,7 +41,7 @@ const addMedicine = async (req, res) => {
                 await StockMovement.create({
                     medicineId: medicine._id,
                     batchNo: batch.batchNo,
-                    pharmacyId: req.user._id,
+                    pharmacyId,
                     type: 'purchase',
                     quantityChange: batch.quantity,
                     balanceAfter: batch.quantity,
@@ -38,9 +51,10 @@ const addMedicine = async (req, res) => {
             }
         }
 
-        res.status(201).json(medicine);
+        res.status(201).json({ success: true, data: medicine });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Add medicine error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -49,14 +63,29 @@ const addMedicine = async (req, res) => {
 // @access  Private/Pharmacy
 const getMedicines = async (req, res) => {
     try {
-        const medicines = await Medicine.find({
-            pharmacyId: req.user._id,
-            isActive: true,
-        }).sort({ name: 1 });
+        const { search } = req.query;
+        // Support both old system (user._id) and new pharmacy module
+        const pharmacyId = req.pharmacyId || req.user._id;
 
-        res.json(medicines);
+        let query = {
+            pharmacyId,
+            isActive: true,
+        };
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { genericName: { $regex: search, $options: 'i' } },
+                { barcode: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const medicines = await Medicine.find(query).sort({ name: 1 });
+
+        res.json({ success: true, data: medicines });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Get medicines error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -89,11 +118,13 @@ const updateMedicine = async (req, res) => {
         const medicine = await Medicine.findById(req.params.id);
 
         if (!medicine) {
-            return res.status(404).json({ message: 'Medicine not found' });
+            return res.status(404).json({ success: false, message: 'Medicine not found' });
         }
 
-        if (medicine.pharmacyId.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
+        // Support both old and new pharmacy systems
+        const pharmacyId = req.pharmacyId || req.user._id;
+        if (medicine.pharmacyId.toString() !== pharmacyId.toString()) {
+            return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
         const updated = await Medicine.findByIdAndUpdate(
@@ -102,9 +133,10 @@ const updateMedicine = async (req, res) => {
             { new: true }
         );
 
-        res.json(updated);
+        res.json({ success: true, data: updated });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Update medicine error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -116,19 +148,22 @@ const deleteMedicine = async (req, res) => {
         const medicine = await Medicine.findById(req.params.id);
 
         if (!medicine) {
-            return res.status(404).json({ message: 'Medicine not found' });
+            return res.status(404).json({ success: false, message: 'Medicine not found' });
         }
 
-        if (medicine.pharmacyId.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
+        // Support both old and new pharmacy systems
+        const pharmacyId = req.pharmacyId || req.user._id;
+        if (medicine.pharmacyId.toString() !== pharmacyId.toString()) {
+            return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
         medicine.isActive = false;
         await medicine.save();
 
-        res.json({ message: 'Medicine deleted' });
+        res.json({ success: true, message: 'Medicine deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Delete medicine error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

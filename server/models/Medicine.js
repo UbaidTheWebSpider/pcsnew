@@ -24,6 +24,12 @@ const medicineSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    taxRate: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100, // Percentage (0-100)
+    },
     batches: [{
         batchNo: String,
         quantity: Number,
@@ -32,8 +38,8 @@ const medicineSchema = new mongoose.Schema({
         supplierCost: Number,
         status: {
             type: String,
-            enum: ['Available', 'Not for Sale', 'Expired', 'Sold Out'],
-            default: 'Available',
+            enum: ['available', 'not_for_sale', 'expired', 'sold_out', 'low_stock'],
+            default: 'available',
         },
     }],
     reorderLevel: {
@@ -68,9 +74,12 @@ medicineSchema.virtual('totalStock').get(function () {
 });
 
 // Update timestamp on save
+// Update timestamp on save
 medicineSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
-    next();
+    if (typeof next === 'function') {
+        next();
+    }
 });
 
 module.exports = mongoose.model('Medicine', medicineSchema);
