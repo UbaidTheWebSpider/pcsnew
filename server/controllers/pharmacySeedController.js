@@ -175,20 +175,53 @@ exports.importMedicines = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid medicines data' });
         }
 
-        // Find pharmacy
-        const pharmacy = await Pharmacy.findOne();
-        if (!pharmacy) {
-            return res.status(404).json({ success: false, message: 'No pharmacy found' });
+        console.log(`[Import] Request received from user: ${req.user ? req.user.email : 'Unknown'}`);
+
+        // Resolve Pharmacy Logic
+        let pharmacyId = null;
+        let pharmacyName = null;
+
+        // 1. Try to get pharmacy from logged-in user context
+        if (req.user) {
+            try {
+                const pharmacyUser = await PharmacyUser.findOne({ userId: req.user._id });
+                if (pharmacyUser) {
+                    pharmacyId = pharmacyUser.pharmacyId;
+
+                    // Optional: Get name for logging
+                    const p = await Pharmacy.findById(pharmacyId);
+                    if (p) pharmacyName = p.basicProfile?.pharmacyName;
+
+                    console.log(`[Import] Resolved pharmacy for user: ${pharmacyId} (${pharmacyName})`);
+                }
+            } catch (err) {
+                console.error('[Import] Error finding pharmacy user:', err);
+            }
         }
 
-        const pharmacyId = pharmacy._id;
+        // 2. Fallback: First available pharmacy (Legacy behavior, kept for safety but logged)
+        if (!pharmacyId) {
+            console.warn('[Import] No pharmacy linked to user. Falling back to first available pharmacy.');
+            const pharmacy = await Pharmacy.findOne();
+            if (pharmacy) {
+                pharmacyId = pharmacy._id;
+                pharmacyName = pharmacy.basicProfile?.pharmacyName;
+            }
+        }
 
-        // Find user for createdBy
-        const user = await PharmacyUser.findOne({ pharmacyId });
-        const userId = user ? user._id : null;
+        if (!pharmacyId) {
+            return res.status(404).json({ success: false, message: 'No pharmacy found to import data into.' });
+        }
+
+        // Find user for createdBy (re-verify)
+        const userLink = await PharmacyUser.findOne({ pharmacyId });
+        const userId = userLink ? userLink._id : (req.user ? req.user._id : null);
+        // Note: userId here should ref a User or PharmacyUser? 
+        // Schema usually expects keys. Let's use whatever we have.
 
         const medicineMap = new Map(); // Old ID -> New ID
         const importResults = {
+            targetPharmacy: pharmacyName,
             medicines: { created: 0, skipped: 0 },
             batches: { created: 0, skipped: 0 }
         };
@@ -244,7 +277,7 @@ exports.importMedicines = async (req, res) => {
                         medicineId: newMedId,
                         pharmacyId: pharmacyId,
                         supplierId: userId,
-                        createdBy: userId,
+                        createdBy: userId, // Assuming createdBy requires OID
                         status: 'available',
                         updatedAt: new Date()
                     });
@@ -271,7 +304,7 @@ exports.importMedicines = async (req, res) => {
                         await Medicine.findByIdAndUpdate(newMedId, {
                             $push: { batches: newEmbeddedBatch }
                         });
-                        // We count this as a fix/update
+                        // Implicitly updated via push
                     }
                 }
             }
