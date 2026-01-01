@@ -100,7 +100,9 @@ const getMedicineById = async (req, res) => {
             return res.status(404).json({ message: 'Medicine not found' });
         }
 
-        if (medicine.pharmacyId.toString() !== req.user._id.toString()) {
+        // Support both old and new pharmacy systems
+        const pharmacyId = req.pharmacyId || req.user._id;
+        if (medicine.pharmacyId.toString() !== pharmacyId.toString()) {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
@@ -223,7 +225,9 @@ const addBatch = async (req, res) => {
             return res.status(404).json({ message: 'Medicine not found' });
         }
 
-        if (medicine.pharmacyId.toString() !== req.user._id.toString()) {
+        // Support both old and new pharmacy systems
+        const pharmacyId = req.pharmacyId || req.user._id;
+        if (medicine.pharmacyId.toString() !== pharmacyId.toString()) {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
