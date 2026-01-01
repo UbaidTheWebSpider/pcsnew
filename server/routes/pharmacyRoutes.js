@@ -38,6 +38,6 @@ router.patch('/:id/approval', authorize('hospital_admin', 'super_admin'), update
 // Seed sample medicines (one-time use for production setup)
 const { seedMedicines, importMedicines } = require('../controllers/pharmacySeedController');
 router.post('/seed-medicines', authorize('hospital_admin', 'super_admin', 'pharmacy_admin'), seedMedicines);
-router.post('/import-medicines', authorize('hospital_admin', 'super_admin', 'pharmacy_admin'), importMedicines);
+router.post('/import-medicines', authorize('hospital_admin', 'super_admin', 'pharmacy_admin', 'pharmacy'), importMedicines);
 
 module.exports = router;
