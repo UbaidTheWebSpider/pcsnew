@@ -199,7 +199,7 @@ exports.importMedicines = async (req, res) => {
             }
         }
 
-        // 2. Fallback: First available pharmacy (Legacy behavior, kept for safety but logged)
+        // 2. Fallback: First available pharmacy
         if (!pharmacyId) {
             console.warn('[Import] No pharmacy linked to user. Falling back to first available pharmacy.');
             const pharmacy = await Pharmacy.findOne();
@@ -213,11 +213,9 @@ exports.importMedicines = async (req, res) => {
             return res.status(404).json({ success: false, message: 'No pharmacy found to import data into.' });
         }
 
-        // Find user for createdBy (re-verify)
+        // Find user for createdBy
         const userLink = await PharmacyUser.findOne({ pharmacyId });
         const userId = userLink ? userLink._id : (req.user ? req.user._id : null);
-        // Note: userId here should ref a User or PharmacyUser? 
-        // Schema usually expects keys. Let's use whatever we have.
 
         const medicineMap = new Map(); // Old ID -> New ID
         const importResults = {
@@ -228,84 +226,115 @@ exports.importMedicines = async (req, res) => {
 
         // Import Medicines
         for (const med of medicines) {
-            const existing = await Medicine.findOne({
-                name: med.name,
-                pharmacyId: pharmacyId
-            });
-
-            if (existing) {
-                medicineMap.set(med._id, existing._id);
-                importResults.medicines.skipped++;
-            } else {
-                const { _id, pharmacyId: oldPid, ...medData } = med;
-                const newMed = await Medicine.create({
-                    ...medData,
-                    pharmacyId: pharmacyId,
-                    isActive: true,
-                    updatedAt: new Date()
+            try {
+                const existing = await Medicine.findOne({
+                    name: med.name,
+                    pharmacyId: pharmacyId
                 });
-                medicineMap.set(med._id, newMed._id);
-                importResults.medicines.created++;
+
+                if (existing) {
+                    medicineMap.set(med._id, existing._id);
+                    importResults.medicines.skipped++;
+                } else {
+                    const { _id, pharmacyId: oldPid, ...medData } = med;
+                    const newMed = await Medicine.create({
+                        ...medData,
+                        pharmacyId: pharmacyId,
+                        isActive: true,
+                        updatedAt: new Date()
+                    });
+                    medicineMap.set(med._id, newMed._id);
+                    importResults.medicines.created++;
+                }
+            } catch (medErr) {
+                console.error(`[Import] Error importing medicine ${med.name}:`, medErr);
             }
         }
 
         // Import Batches
         if (batches && Array.isArray(batches)) {
             for (const batch of batches) {
-                const newMedId = medicineMap.get(batch.medicineId);
+                try {
+                    const newMedId = medicineMap.get(batch.medicineId);
+                    if (!newMedId) continue;
 
-                if (!newMedId) continue;
+                    let finalBatchNumber = batch.batchNumber;
+                    let finalBarcode = batch.barcode;
 
-                // Sync Logic: Ensure batch exists in BOTH MedicineBatch collection AND Medicine.batches array
-
-                // 1. Handle MedicineBatch Collection
-                const existingBatchDocs = await MedicineBatch.find({
-                    batchNumber: batch.batchNumber, // Payload uses batchNumber
-                    pharmacyId: pharmacyId,
-                    medicineId: newMedId
-                });
-
-                let batchCreated = false;
-
-                if (existingBatchDocs.length > 0) {
-                    importResults.batches.skipped++;
-                } else {
-                    const { _id, medicineId, pharmacyId: oldPid, supplierId, createdBy, ...batchData } = batch;
-
-                    await MedicineBatch.create({
-                        ...batchData,
-                        medicineId: newMedId,
-                        pharmacyId: pharmacyId,
-                        supplierId: userId,
-                        createdBy: userId, // Assuming createdBy requires OID
-                        status: 'available',
-                        updatedAt: new Date()
+                    // CONFLICT RESOLUTION: Check Global Uniqueness for batchNumber and barcode
+                    const conflict = await MedicineBatch.findOne({
+                        $or: [
+                            { batchNumber: finalBatchNumber },
+                            // Check barcode only if it exists
+                            ...(finalBarcode ? [{ barcode: finalBarcode }] : [])
+                        ]
                     });
-                    importResults.batches.created++;
-                    batchCreated = true;
-                }
 
-                // 2. Handle Embedded Batches Array in Medicine Document
-                const medDoc = await Medicine.findById(newMedId);
-                if (medDoc) {
-                    const batchExistsEmbedded = medDoc.batches && medDoc.batches.some(b => b.batchNo === batch.batchNumber);
-
-                    if (!batchExistsEmbedded) {
-                        // Map fields from payload to embedded schema
-                        const newEmbeddedBatch = {
-                            batchNo: batch.batchNumber,
-                            quantity: batch.quantity,
-                            mfgDate: batch.manufacturingDate,
-                            expDate: batch.expiryDate,
-                            supplierCost: batch.purchasePrice, // Map purchasePrice to supplierCost
-                            status: 'available'
-                        };
-
-                        await Medicine.findByIdAndUpdate(newMedId, {
-                            $push: { batches: newEmbeddedBatch }
-                        });
-                        // Implicitly updated via push
+                    if (conflict) {
+                        if (conflict.pharmacyId && conflict.pharmacyId.toString() === pharmacyId.toString()) {
+                            // Already exists in THIS pharmacy -> Skip
+                            importResults.batches.skipped++;
+                            // But still try to sync embedded!
+                        } else {
+                            // Exists in ANOTHER pharmacy -> Must rename to avoid Unique Constraint crash
+                            const suffix = Date.now().toString().slice(-6);
+                            finalBatchNumber = `${finalBatchNumber}-IMP-${suffix}`;
+                            if (finalBarcode) {
+                                finalBarcode = `${finalBarcode}-${suffix}`;
+                            }
+                            console.log(`[Import] Resolving global conflict for batch ${batch.batchNumber} -> ${finalBatchNumber}`);
+                        }
                     }
+
+                    // 1. Create MedicineBatch Document (if valid in this pharmacy)
+                    // We check if it exists in THIS pharmacy again to be sure (if logic above fell through)
+                    const existingInThisPharmacy = await MedicineBatch.findOne({
+                        batchNumber: finalBatchNumber,
+                        pharmacyId: pharmacyId
+                    });
+
+                    if (!existingInThisPharmacy) {
+                        const { _id, medicineId, pharmacyId: oldPid, supplierId, createdBy, ...batchData } = batch;
+
+                        // Use final modified values
+                        batchData.batchNumber = finalBatchNumber;
+                        batchData.barcode = finalBarcode;
+
+                        await MedicineBatch.create({
+                            ...batchData,
+                            medicineId: newMedId,
+                            pharmacyId: pharmacyId,
+                            supplierId: userId,
+                            createdBy: userId,
+                            status: 'available',
+                            updatedAt: new Date()
+                        });
+                        importResults.batches.created++;
+                    }
+
+                    // 2. Sync to Embedded Batches Array
+                    const medDoc = await Medicine.findById(newMedId);
+                    if (medDoc) {
+                        const batchExistsEmbedded = medDoc.batches && medDoc.batches.some(b => b.batchNo === finalBatchNumber);
+
+                        if (!batchExistsEmbedded) {
+                            const newEmbeddedBatch = {
+                                batchNo: finalBatchNumber,
+                                quantity: batch.quantity,
+                                mfgDate: batch.manufacturingDate,
+                                expDate: batch.expiryDate,
+                                supplierCost: batch.purchasePrice,
+                                status: 'available'
+                            };
+
+                            await Medicine.findByIdAndUpdate(newMedId, {
+                                $push: { batches: newEmbeddedBatch }
+                            });
+                        }
+                    }
+                } catch (batchErr) {
+                    console.error('[Import] Error importing batch:', batchErr);
+                    // Continue loop even if one fails
                 }
             }
         }
