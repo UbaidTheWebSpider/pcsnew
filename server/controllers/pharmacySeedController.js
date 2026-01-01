@@ -163,3 +163,102 @@ exports.seedMedicines = async (req, res) => {
         });
     }
 };
+// @desc    Import medicines from backup (ADMIN ONLY)
+// @route   POST /api/pharmacy/import-medicines
+// @access  Private/Admin
+exports.importMedicines = async (req, res) => {
+    try {
+        const { medicines, batches } = req.body;
+
+        if (!medicines || !Array.isArray(medicines)) {
+            return res.status(400).json({ success: false, message: 'Invalid medicines data' });
+        }
+
+        // Find pharmacy
+        const pharmacy = await Pharmacy.findOne();
+        if (!pharmacy) {
+            return res.status(404).json({ success: false, message: 'No pharmacy found' });
+        }
+
+        const pharmacyId = pharmacy._id;
+
+        // Find user for createdBy
+        const user = await PharmacyUser.findOne({ pharmacyId });
+        const userId = user ? user._id : null;
+
+        const medicineMap = new Map(); // Old ID -> New ID
+        const importResults = {
+            medicines: { created: 0, skipped: 0 },
+            batches: { created: 0, skipped: 0 }
+        };
+
+        // Import Medicines
+        for (const med of medicines) {
+            const existing = await Medicine.findOne({
+                name: med.name,
+                pharmacyId: pharmacyId
+            });
+
+            if (existing) {
+                medicineMap.set(med._id, existing._id);
+                importResults.medicines.skipped++;
+            } else {
+                const { _id, pharmacyId: oldPid, ...medData } = med;
+                const newMed = await Medicine.create({
+                    ...medData,
+                    pharmacyId: pharmacyId,
+                    isActive: true,
+                    updatedAt: new Date()
+                });
+                medicineMap.set(med._id, newMed._id);
+                importResults.medicines.created++;
+            }
+        }
+
+        // Import Batches
+        if (batches && Array.isArray(batches)) {
+            for (const batch of batches) {
+                const newMedId = medicineMap.get(batch.medicineId);
+
+                if (!newMedId) continue;
+
+                const existingBatch = await MedicineBatch.findOne({
+                    batchNumber: batch.batchNumber,
+                    pharmacyId: pharmacyId,
+                    medicineId: newMedId
+                });
+
+                if (existingBatch) {
+                    importResults.batches.skipped++;
+                } else {
+                    const { _id, medicineId, pharmacyId: oldPid, supplierId, createdBy, ...batchData } = batch;
+
+                    await MedicineBatch.create({
+                        ...batchData,
+                        medicineId: newMedId,
+                        pharmacyId: pharmacyId,
+                        supplierId: userId,
+                        createdBy: userId,
+                        status: 'available',
+                        updatedAt: new Date()
+                    });
+                    importResults.batches.created++;
+                }
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Import completed',
+            data: importResults
+        });
+
+    } catch (error) {
+        console.error('Import error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Import failed',
+            error: error.message
+        });
+    }
+};
