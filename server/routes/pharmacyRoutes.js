@@ -36,7 +36,8 @@ router.delete('/:id', authorize('hospital_admin', 'super_admin'), deletePharmacy
 router.patch('/:id/approval', authorize('hospital_admin', 'super_admin'), updateApprovalStatus);
 
 // Seed sample medicines (one-time use for production setup)
-const { seedMedicines } = require('../controllers/pharmacySeedController');
+const { seedMedicines, importMedicines } = require('../controllers/pharmacySeedController');
 router.post('/seed-medicines', authorize('hospital_admin', 'super_admin', 'pharmacy_admin'), seedMedicines);
+router.post('/import-medicines', authorize('hospital_admin', 'super_admin', 'pharmacy_admin'), importMedicines);
 
 module.exports = router;
