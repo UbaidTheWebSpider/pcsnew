@@ -231,13 +231,23 @@ const addBatch = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
+        // Normalize status to match schema enum
+        const statusMap = {
+            'Available': 'available',
+            'Not for Sale': 'not_for_sale',
+            'Expired': 'expired',
+            'Sold Out': 'sold_out',
+            'Low Stock': 'low_stock'
+        };
+        const normalizedStatus = statusMap[status] || status?.toLowerCase() || 'available';
+
         const newBatch = {
             batchNo,
             quantity,
             mfgDate,
             expDate,
             supplierCost,
-            status: status || 'Available',
+            status: normalizedStatus,
         };
 
         medicine.batches.push(newBatch);
@@ -247,12 +257,12 @@ const addBatch = async (req, res) => {
         await StockMovement.create({
             medicineId: medicine._id,
             batchNo,
-            pharmacyId: req.user._id,
+            pharmacyId: req.pharmacyId || req.user._id,
             type: 'purchase',
             quantityChange: quantity,
             balanceAfter: medicine.batches.reduce((sum, b) => sum + b.quantity, 0),
             performedBy: req.user._id,
-            notes: `Batch added with status: ${newBatch.status}`,
+            notes: `Batch added with status: ${normalizedStatus}`,
         });
 
         res.status(201).json(medicine);
