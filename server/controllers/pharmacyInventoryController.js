@@ -24,6 +24,7 @@ exports.getAllBatches = async (req, res) => {
                     { name: { $regex: search, $options: 'i' } },
                     { genericName: { $regex: search, $options: 'i' } }
                 ],
+                pharmacyId: req.pharmacyId,
                 isActive: true
             }).select('_id');
 
