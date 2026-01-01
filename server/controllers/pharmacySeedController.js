@@ -163,6 +163,7 @@ exports.seedMedicines = async (req, res) => {
         });
     }
 };
+
 // @desc    Import medicines from backup (ADMIN ONLY)
 // @route   POST /api/pharmacy/import-medicines
 // @access  Private/Admin
@@ -222,13 +223,18 @@ exports.importMedicines = async (req, res) => {
 
                 if (!newMedId) continue;
 
-                const existingBatch = await MedicineBatch.findOne({
-                    batchNumber: batch.batchNumber,
+                // Sync Logic: Ensure batch exists in BOTH MedicineBatch collection AND Medicine.batches array
+
+                // 1. Handle MedicineBatch Collection
+                const existingBatchDocs = await MedicineBatch.find({
+                    batchNumber: batch.batchNumber, // Payload uses batchNumber
                     pharmacyId: pharmacyId,
                     medicineId: newMedId
                 });
 
-                if (existingBatch) {
+                let batchCreated = false;
+
+                if (existingBatchDocs.length > 0) {
                     importResults.batches.skipped++;
                 } else {
                     const { _id, medicineId, pharmacyId: oldPid, supplierId, createdBy, ...batchData } = batch;
@@ -243,6 +249,30 @@ exports.importMedicines = async (req, res) => {
                         updatedAt: new Date()
                     });
                     importResults.batches.created++;
+                    batchCreated = true;
+                }
+
+                // 2. Handle Embedded Batches Array in Medicine Document
+                const medDoc = await Medicine.findById(newMedId);
+                if (medDoc) {
+                    const batchExistsEmbedded = medDoc.batches && medDoc.batches.some(b => b.batchNo === batch.batchNumber);
+
+                    if (!batchExistsEmbedded) {
+                        // Map fields from payload to embedded schema
+                        const newEmbeddedBatch = {
+                            batchNo: batch.batchNumber,
+                            quantity: batch.quantity,
+                            mfgDate: batch.manufacturingDate,
+                            expDate: batch.expiryDate,
+                            supplierCost: batch.purchasePrice, // Map purchasePrice to supplierCost
+                            status: 'available'
+                        };
+
+                        await Medicine.findByIdAndUpdate(newMedId, {
+                            $push: { batches: newEmbeddedBatch }
+                        });
+                        // We count this as a fix/update
+                    }
                 }
             }
         }
