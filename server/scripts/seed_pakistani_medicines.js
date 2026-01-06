@@ -95,35 +95,39 @@ async function seed() {
         }
         console.log(`Seeded ${createdMedicines.length} MasterMedicines`);
 
-        // 2. Find a pharmacy to seed batches for
-        // We'll look for the first user with 'pharmacy' role or 'pharmacy_admin'
-        const pharmacyUser = await mongoose.model('User').findOne({ role: { $in: ['pharmacy', 'pharmacy_admin'] } });
+        // 2. Find all pharmacies to seed batches for
+        const pharmacyUsers = await User.find({ role: { $in: ['pharmacy', 'pharmacy_admin'] } });
 
-        if (pharmacyUser) {
-            const pharmacyId = pharmacyUser._id;
-            console.log(`Found pharmacy user: ${pharmacyUser.name} (${pharmacyId}). Seeding batches...`);
+        if (pharmacyUsers.length > 0) {
+            console.log(`Found ${pharmacyUsers.length} pharmacy users. Seeding batches for each...`);
 
-            const batchPromises = createdMedicines.map(med => {
-                return MasterMedicineBatch.create({
-                    masterMedicineId: med._id,
-                    pharmacyId: pharmacyId,
-                    batchNumber: `BN-${Math.floor(Math.random() * 10000)}`,
-                    quantity: 100 + Math.floor(Math.random() * 400),
-                    purchasePrice: med.unitPrice * 0.8,
-                    mrp: med.unitPrice,
-                    manufacturingDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 3 months ago
-                    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year later
-                    barcode: med.barcode,
-                    status: 'available',
-                    supplierId: new mongoose.Types.ObjectId("60d0fe4f5311236168a109ca"), // Placeholder supplier
-                    createdBy: pharmacyUser._id
+            for (const pharmacyUser of pharmacyUsers) {
+                const pharmacyId = pharmacyUser._id;
+                console.log(`Seeding batches for: ${pharmacyUser.name} (${pharmacyId})...`);
+
+                const batchPromises = createdMedicines.map((med, index) => {
+                    const uniqueSuffix = `${pharmacyId.toString().slice(-4)}-${index}`;
+                    return MasterMedicineBatch.create({
+                        masterMedicineId: med._id,
+                        pharmacyId: pharmacyId,
+                        batchNumber: `BN-${uniqueSuffix}-${Math.floor(Math.random() * 1000)}`,
+                        quantity: 100 + Math.floor(Math.random() * 400),
+                        purchasePrice: med.unitPrice * 0.8,
+                        mrp: med.unitPrice,
+                        manufacturingDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 3 months ago
+                        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year later
+                        barcode: `BC-${uniqueSuffix}-${Math.floor(Math.random() * 1000000)}`,
+                        status: 'available',
+                        supplierId: new mongoose.Types.ObjectId("60d0fe4f5311236168a109ca"), // Placeholder supplier
+                        createdBy: pharmacyUser._id
+                    });
                 });
-            });
 
-            await Promise.all(batchPromises);
-            console.log(`Seeded ${batchPromises.length} batches for pharmacy ${pharmacyUser.name}`);
+                await Promise.all(batchPromises);
+                console.log(`Seeded ${batchPromises.length} batches for pharmacy ${pharmacyUser.name}`);
+            }
         } else {
-            console.log('No pharmacy user found. Skipping batch seeding.');
+            console.log('No pharmacy users found. Skipping batch seeding.');
         }
 
         console.log('Seeding completed successfully');
