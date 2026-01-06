@@ -351,12 +351,5 @@ masterMedicineSchema.statics.getFilterOptions = async function () {
     };
 };
 
-// Pre-save hook: Update timestamp
-masterMedicineSchema.pre('save', function (next) {
-    if (this.isModified() && !this.isNew) {
-        this.updatedAt = new Date();
-    }
-    next();
-});
-
+// module.exports
 module.exports = mongoose.model('MasterMedicine', masterMedicineSchema);

@@ -252,9 +252,8 @@ const MedicineInventory = () => {
     };
 
     const getTotalStock = (medicineId) => {
-        // In a real production system, this mapping would be handled by the backend
-        // For now, we return 0 if not pre-populated
-        return 0;
+        const medicine = medicines.find(m => m._id === medicineId);
+        return medicine?.totalStock || 0;
     };
 
     return (

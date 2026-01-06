@@ -284,7 +284,7 @@ masterMedicineBatchSchema.methods.softDelete = async function (userId) {
 };
 
 // Pre-save hook: Update status based on expiry and quantity
-masterMedicineBatchSchema.pre('save', async function (next) {
+masterMedicineBatchSchema.pre('save', async function () {
     // Check if expired
     if (this.expiryDate < new Date() && this.status !== 'recalled') {
         this.status = 'expired';
@@ -304,8 +304,6 @@ masterMedicineBatchSchema.pre('save', async function (next) {
     if (!this.sellingPrice && this.mrp && this.discountPercentage) {
         this.sellingPrice = this.mrp * (1 - this.discountPercentage / 100);
     }
-
-    next();
 });
 
 // Static Method: Get pharmacy inventory with pagination
