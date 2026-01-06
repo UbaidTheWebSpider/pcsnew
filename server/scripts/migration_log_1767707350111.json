@@ -1,0 +1,16 @@
+[
+  {
+    "collection": "mastermedicines",
+    "localCount": 114,
+    "prodInitialCount": 0,
+    "prodFinalCount": 0,
+    "status": "SUCCESS"
+  },
+  {
+    "collection": "mastermedicinebatches",
+    "localCount": 218,
+    "prodInitialCount": 0,
+    "prodFinalCount": 0,
+    "status": "SUCCESS"
+  }
+]
