@@ -3,19 +3,107 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Typography Scale - Fluid Responsive Sizing */
+    --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+    --font-size-base: clamp(0.875rem, 0.85rem + 0.25vw, 1rem);
+    --font-size-lg: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --font-size-xl: clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem);
+    --font-size-2xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --font-size-3xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+    --font-size-4xl: clamp(1.875rem, 1.65rem + 1.125vw, 2.25rem);
+    --font-size-5xl: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+    
+    /* Icon Sizes - Scale with Typography */
+    --icon-size-xs: 1rem;
+    --icon-size-sm: 1.25rem;
+    --icon-size-md: 1.5rem;
+    --icon-size-lg: 2rem;
+    --icon-size-xl: 2.5rem;
+    
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+  }
+  
+  html {
+    font-size: 100%; /* Respect user's browser settings for accessibility */
+  }
+  
   body {
     @apply font-sans text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200;
     font-family: 'Inter', sans-serif;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
+  /* Heading Scale - Proportional Typography Hierarchy */
+  h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-5xl);
+    line-height: var(--line-height-tight);
+    @apply dark:text-white;
+  }
+  
+  h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-tight);
+    @apply dark:text-white;
+  }
+  
+  h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+    @apply dark:text-white;
+  }
+  
+  h4 {
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-normal);
+    @apply dark:text-white;
+  }
+  
+  h5 {
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-normal);
+    @apply dark:text-white;
+  }
+  
   h6 {
     font-family: 'Poppins', sans-serif;
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-normal);
     @apply dark:text-white;
+  }
+  
+  /* Global Icon Sizing - Icons inherit text size */
+  svg {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  
+  /* Form Elements Inherit Typography */
+  input, textarea, select, button {
+    font-size: inherit;
+    line-height: inherit;
+  }
+  
+  /* Table Elements */
+  table {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Labels and Small Text */
+  label, .text-small {
+    font-size: var(--font-size-sm);
   }
 }
 
