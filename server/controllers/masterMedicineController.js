@@ -37,22 +37,38 @@ exports.getAllMedicines = async (req, res) => {
         const result = await MasterMedicine.searchWithPagination(null, options);
 
         // Include stock quantification if pharmacyId is present
-        const pharmacyId = req.pharmacyId;
-        if (pharmacyId && result.data && result.data.length > 0) {
-            const medicineIds = result.data.map(m => m._id);
-            const batchStock = await MasterMedicineBatch.aggregate([
-                { $match: { masterMedicineId: { $in: medicineIds }, pharmacyId: new mongoose.Types.ObjectId(pharmacyId), isDeleted: false } },
-                { $group: { _id: '$masterMedicineId', totalQuantity: { $sum: '$quantity' } } }
-            ]);
+        try {
+            const pharmacyId = req.pharmacyId;
+            if (pharmacyId && result.data && result.data.length > 0) {
+                const medicineIds = result.data.map(m => m._id);
 
-            const stockMap = {};
-            batchStock.forEach(item => {
-                stockMap[item._id.toString()] = item.totalQuantity;
-            });
+                const batchStock = await MasterMedicineBatch.aggregate([
+                    {
+                        $match: {
+                            masterMedicineId: { $in: medicineIds },
+                            pharmacyId: new mongoose.Types.ObjectId(pharmacyId.toString()),
+                            isDeleted: false
+                        }
+                    },
+                    { $group: { _id: '$masterMedicineId', totalQuantity: { $sum: '$quantity' } } }
+                ]);
 
+                const stockMap = {};
+                batchStock.forEach(item => {
+                    if (item._id) stockMap[item._id.toString()] = item.totalQuantity;
+                });
+
+                result.data = result.data.map(med => ({
+                    ...med,
+                    totalStock: stockMap[med._id.toString()] || 0
+                }));
+            }
+        } catch (stockError) {
+            console.error('Stock quantification failed, but proceeding with catalog data:', stockError);
+            // Don't fail the whole request if stock quantification fails
             result.data = result.data.map(med => ({
                 ...med,
-                totalStock: stockMap[med._id.toString()] || 0
+                totalStock: 0
             }));
         }
 
