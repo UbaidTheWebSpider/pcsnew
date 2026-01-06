@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const masterMedicineBatchController = require('../controllers/masterMedicineBatchController');
-const { protect } = require('../middleware/auth');
-const pharmacyAuthMiddleware = require('../middleware/pharmacyAuthMiddleware');
+const { protect } = require('../middleware/authMiddleware');
+const { authorizePharmacyRole, attachPharmacyContext } = require('../middleware/pharmacyAuthMiddleware');
 
 // Apply pharmacy authentication middleware to all routes
 router.use(protect);
-router.use(pharmacyAuthMiddleware);
+router.use(attachPharmacyContext);
 
 // Inventory Overview & Statistics
 router.get('/stats', masterMedicineBatchController.getInventoryStats);

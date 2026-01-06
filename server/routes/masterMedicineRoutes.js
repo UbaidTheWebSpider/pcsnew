@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const masterMedicineController = require('../controllers/masterMedicineController');
-const { protect } = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
+const { attachPharmacyContext } = require('../middleware/pharmacyAuthMiddleware');
 
 // Middleware to check if user has admin role
 const authorize = (...roles) => {
@@ -25,31 +26,31 @@ const authorize = (...roles) => {
 };
 
 // Public/Pharmacy Routes (Read-Only for pharmacy users)
-router.get('/filters', protect, masterMedicineController.getFilters);
-router.get('/search', protect, masterMedicineController.searchMedicines);
-router.get('/stats', protect, masterMedicineController.getMedicineStats);
-router.get('/:id/batches', protect, masterMedicineController.getBatchesByMedicine);
-router.get('/:id', protect, masterMedicineController.getMedicineById);
-router.get('/', protect, masterMedicineController.getAllMedicines);
+router.use(protect);
+router.use(attachPharmacyContext);
+
+router.get('/filters', masterMedicineController.getFilters);
+router.get('/search', masterMedicineController.searchMedicines);
+router.get('/stats', masterMedicineController.getMedicineStats);
+router.get('/:id/batches', masterMedicineController.getBatchesByMedicine);
+router.get('/:id', masterMedicineController.getMedicineById);
+router.get('/', masterMedicineController.getAllMedicines);
 
 // Admin Routes (Create, Update, Delete)
 router.post(
     '/',
-    protect,
     authorize('admin', 'super_admin'),
     masterMedicineController.createMedicine
 );
 
 router.put(
     '/:id',
-    protect,
     authorize('admin', 'super_admin'),
     masterMedicineController.updateMedicine
 );
 
 router.put(
     '/:id/discontinue',
-    protect,
     authorize('admin', 'super_admin'),
     masterMedicineController.discontinueMedicine
 );
