@@ -35,12 +35,12 @@ const prescriptionFulfillmentSchema = new mongoose.Schema({
         prescribedDuration: String,
         dispensedMedicineId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Medicine'
+            ref: 'MasterMedicine'
         },
         dispensedMedicineName: String,
         batchId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'MedicineBatch'
+            ref: 'MasterMedicineBatch'
         },
         batchNumber: String,
         quantityPrescribed: Number,

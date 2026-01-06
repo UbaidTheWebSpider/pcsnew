@@ -1,7 +1,7 @@
 const PrescriptionFulfillment = require('../models/PrescriptionFulfillment');
 const Prescription = require('../models/Prescription');
-const MedicineBatch = require('../models/MedicineBatch');
-const Medicine = require('../models/Medicine');
+const MedicineBatch = require('../models/MasterMedicineBatch');
+const Medicine = require('../models/MasterMedicine');
 const PharmacyAuditLog = require('../models/PharmacyAuditLog');
 
 // @desc    Get pending prescriptions

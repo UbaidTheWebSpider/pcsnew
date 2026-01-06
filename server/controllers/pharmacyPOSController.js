@@ -1,6 +1,6 @@
 const POSTransaction = require('../models/POSTransaction');
 const CashierShift = require('../models/CashierShift');
-const MedicineBatch = require('../models/MedicineBatch');
+const MedicineBatch = require('../models/MasterMedicineBatch');
 const PharmacyAuditLog = require('../models/PharmacyAuditLog');
 
 // @desc    Create POS transaction
@@ -58,7 +58,7 @@ exports.createTransaction = async (req, res) => {
             if (batch.quantity < item.quantity) {
                 return res.status(400).json({
                     success: false,
-                    message: `Insufficient stock for ${batch.medicineName}`
+                    message: `Insufficient stock for ${item.medicineName || 'requested item'}`
                 });
             }
 

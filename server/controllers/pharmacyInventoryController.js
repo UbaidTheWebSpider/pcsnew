@@ -1,5 +1,5 @@
-const MedicineBatch = require('../models/MedicineBatch');
-const Medicine = require('../models/Medicine');
+const MedicineBatch = require('../models/MasterMedicineBatch');
+const Medicine = require('../models/MasterMedicine');
 const Supplier = require('../models/Supplier');
 const PharmacyAuditLog = require('../models/PharmacyAuditLog');
 
@@ -24,14 +24,14 @@ exports.getAllBatches = async (req, res) => {
                     { name: { $regex: search, $options: 'i' } },
                     { genericName: { $regex: search, $options: 'i' } }
                 ],
-                pharmacyId: req.pharmacyId,
+                // Master medicine is global, no pharmacyId on the model itself
                 isActive: true
             }).select('_id');
 
             const medIds = medicines.map(m => m._id);
 
             query.$or = [
-                { medicineId: { $in: medIds } },
+                { masterMedicineId: { $in: medIds } },
                 { batchNumber: { $regex: search, $options: 'i' } },
                 { barcode: { $regex: search, $options: 'i' } }
             ];
@@ -48,14 +48,22 @@ exports.getAllBatches = async (req, res) => {
         }
 
         const batches = await MedicineBatch.find(query)
-            .populate('medicineId', 'name genericName category form strength price taxRate manufacturer')
+            .populate('masterMedicineId', 'name genericName category form strength price taxRate manufacturer')
             .populate('supplierId', 'supplierName contactPerson')
             .sort({ expiryDate: 1 });
 
+        // Transform results to maintain medicineId field for frontend compatibility
+        const transformedBatches = batches.map(batch => {
+            const b = batch.toObject({ virtuals: true });
+            b.medicineId = b.masterMedicineId;
+            delete b.masterMedicineId;
+            return b;
+        });
+
         // Filter low stock if requested
-        let filteredBatches = batches;
+        let filteredBatches = transformedBatches;
         if (lowStock === 'true') {
-            filteredBatches = batches.filter(batch => batch.isLowStock);
+            filteredBatches = transformedBatches.filter(batch => batch.isLowStock);
         }
 
         res.json({
@@ -103,7 +111,7 @@ exports.addBatch = async (req, res) => {
 
         // Create batch
         const batch = await MedicineBatch.create({
-            medicineId,
+            masterMedicineId: medicineId,
             pharmacyId: req.pharmacyId,
             batchNumber,
             quantity,
@@ -224,13 +232,20 @@ exports.getExpiringMedicines = async (req, res) => {
             isDeleted: false,
             status: { $ne: 'expired' }
         })
-            .populate('medicineId', 'name genericName category taxRate')
+            .populate('masterMedicineId', 'name genericName category taxRate')
             .sort({ expiryDate: 1 });
+
+        const transformedBatches = expiringBatches.map(batch => {
+            const b = batch.toObject({ virtuals: true });
+            b.medicineId = b.masterMedicineId;
+            delete b.masterMedicineId;
+            return b;
+        });
 
         res.json({
             success: true,
-            count: expiringBatches.length,
-            data: expiringBatches
+            count: transformedBatches.length,
+            data: transformedBatches
         });
     } catch (error) {
         console.error('Get expiring medicines error:', error);
@@ -251,9 +266,16 @@ exports.getLowStockItems = async (req, res) => {
             isDeleted: false,
             status: { $in: ['available', 'low_stock'] }
         })
-            .populate('medicineId', 'name genericName category taxRate');
+            .populate('masterMedicineId', 'name genericName category taxRate');
 
-        const lowStockBatches = batches.filter(batch => batch.isLowStock);
+        const transformedBatches = batches.map(batch => {
+            const b = batch.toObject({ virtuals: true });
+            b.medicineId = b.masterMedicineId;
+            delete b.masterMedicineId;
+            return b;
+        });
+
+        const lowStockBatches = transformedBatches.filter(batch => batch.isLowStock);
 
         res.json({
             success: true,
@@ -280,7 +302,7 @@ exports.searchByBarcode = async (req, res) => {
             barcode,
             pharmacyId: req.pharmacyId,
             isDeleted: false
-        }).populate('medicineId', 'name genericName category form strength price taxRate manufacturer');
+        }).populate('masterMedicineId', 'name genericName category form strength price taxRate manufacturer');
 
         if (!batch) {
             return res.status(404).json({
@@ -289,9 +311,13 @@ exports.searchByBarcode = async (req, res) => {
             });
         }
 
+        const transformedBatch = batch.toObject({ virtuals: true });
+        transformedBatch.medicineId = transformedBatch.masterMedicineId;
+        delete transformedBatch.masterMedicineId;
+
         res.json({
             success: true,
-            data: batch
+            data: transformedBatch
         });
     } catch (error) {
         console.error('Barcode search error:', error);

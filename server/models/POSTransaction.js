@@ -26,12 +26,12 @@ const posTransactionSchema = new mongoose.Schema({
     items: [{
         medicineId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Medicine',
+            ref: 'MasterMedicine',
             required: true
         },
         batchId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'MedicineBatch',
+            ref: 'MasterMedicineBatch',
             required: true
         },
         medicineName: {

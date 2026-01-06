@@ -1,5 +1,5 @@
 const POSTransaction = require('../models/POSTransaction');
-const MedicineBatch = require('../models/MedicineBatch');
+const MedicineBatch = require('../models/MasterMedicineBatch');
 const PrescriptionFulfillment = require('../models/PrescriptionFulfillment');
 const CashierShift = require('../models/CashierShift');
 
@@ -124,9 +124,9 @@ exports.getSalesAnalytics = async (req, res) => {
         const categoryStats = {};
         for (const transaction of transactions) {
             for (const item of transaction.items) {
-                const batch = await MedicineBatch.findById(item.batchId).populate('medicineId');
-                if (batch && batch.medicineId) {
-                    const category = batch.medicineId.category || 'Uncategorized';
+                const batch = await MedicineBatch.findById(item.batchId).populate('masterMedicineId');
+                if (batch && batch.masterMedicineId) {
+                    const category = batch.masterMedicineId.category || 'Uncategorized';
                     if (!categoryStats[category]) {
                         categoryStats[category] = 0;
                     }
@@ -168,14 +168,14 @@ exports.getAlerts = async (req, res) => {
             pharmacyId: req.pharmacyId,
             isDeleted: false,
             status: { $in: ['available', 'low_stock'] }
-        }).populate('medicineId', 'name');
+        }).populate('masterMedicineId', 'name');
 
         const lowStockBatches = allBatches.filter(b => b.isLowStock);
         lowStockBatches.forEach(batch => {
             alerts.push({
                 type: 'low_stock',
                 severity: 'warning',
-                message: `${batch.medicineId?.name} is low on stock (${batch.quantity} remaining)`,
+                message: `${batch.masterMedicineId?.name} is low on stock (${batch.quantity} remaining)`,
                 batchId: batch._id
             });
         });
@@ -188,13 +188,13 @@ exports.getAlerts = async (req, res) => {
             pharmacyId: req.pharmacyId,
             expiryDate: { $lte: thirtyDaysFromNow, $gt: new Date() },
             isDeleted: false
-        }).populate('medicineId', 'name');
+        }).populate('masterMedicineId', 'name');
 
         expiringBatches.forEach(batch => {
             alerts.push({
                 type: 'expiry',
                 severity: batch.daysUntilExpiry <= 7 ? 'critical' : 'warning',
-                message: `${batch.medicineId?.name} expires in ${batch.daysUntilExpiry} days`,
+                message: `${batch.masterMedicineId?.name} expires in ${batch.daysUntilExpiry} days`,
                 batchId: batch._id,
                 expiryDate: batch.expiryDate
             });
