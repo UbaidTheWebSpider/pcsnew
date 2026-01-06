@@ -47,6 +47,11 @@ app.use('/api/pharmacy/inventory', require('./routes/pharmacyInventoryRoutes'));
 app.use('/api/pharmacy/prescriptions', require('./routes/pharmacyPrescriptionRoutes')); // Prescription fulfillment
 app.use('/api/pharmacy/pos', require('./routes/pharmacyPOSRoutes')); // Point of Sale
 
+// Master Medicine Registry (Centralized Medicine Database)
+app.use('/api/master-medicines', require('./routes/masterMedicineRoutes')); // Global medicine registry
+app.use('/api/pharmacy/master-inventory', require('./routes/masterMedicineBatchRoutes')); // Pharmacy-specific inventory
+
+
 
 app.get('/', (req, res) => {
   res.send('Telemedicine API is running...');
