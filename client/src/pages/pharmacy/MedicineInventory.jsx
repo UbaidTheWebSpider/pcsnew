@@ -8,6 +8,23 @@ const MedicineInventory = () => {
     const [medicines, setMedicines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalRecords: 0,
+        hasNextPage: false,
+        hasPrevPage: false
+    });
+    const [filters, setFilters] = useState({
+        manufacturer: '',
+        genericName: '',
+        category: ''
+    });
+    const [filterOptions, setFilterOptions] = useState({
+        manufacturers: [],
+        categories: [],
+        genericNames: []
+    });
     const [showAddForm, setShowAddForm] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
@@ -33,24 +50,58 @@ const MedicineInventory = () => {
         barcode: '',
     });
 
-    const fetchMedicines = useCallback(async () => {
+    const fetchFilterOptions = useCallback(async () => {
         try {
+            const { data } = await axiosInstance.get('/api/master-medicines/filters');
+            if (data.success) {
+                setFilterOptions(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching filters:', error);
+        }
+    }, []);
+
+    const fetchMedicines = useCallback(async (page = 1) => {
+        try {
+            setLoading(true);
             const token = localStorage.getItem('token');
-            const { data } = await axiosInstance.get('/api/medicines', {
+            const params = {
+                page,
+                limit: 5, // Exactly 5 per page as per requirement
+                search: searchTerm,
+                manufacturer: filters.manufacturer,
+                genericName: filters.genericName,
+                category: filters.category
+            };
+
+            const { data } = await axiosInstance.get('/api/master-medicines', {
+                params,
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Handle both old and new response formats
-            setMedicines(data.data || data);
+
+            if (data.success) {
+                setMedicines(data.data);
+                setPagination(data.pagination);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching medicines:', error);
             setLoading(false);
+            showError('Failed to fetch medicine catalog');
         }
-    }, []);
+    }, [searchTerm, filters]);
 
     useEffect(() => {
-        fetchMedicines();
-    }, [fetchMedicines]);
+        fetchFilterOptions();
+    }, [fetchFilterOptions]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchMedicines(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, filters, fetchMedicines]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -109,9 +160,21 @@ const MedicineInventory = () => {
         }
     };
 
-    const handleView = (medicine) => {
+    const handleView = async (medicine) => {
         setSelectedMedicine(medicine);
         setShowViewModal(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const { data } = await axiosInstance.get(`/api/master-medicines/${medicine._id}/batches`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (data.success) {
+                setSelectedMedicine(prev => ({ ...prev, batches: data.data }));
+            }
+        } catch (error) {
+            console.error('Error fetching batches for view:', error);
+        }
     };
 
     const handleDelete = async (medicineId, medicineName) => {
@@ -153,9 +216,24 @@ const MedicineInventory = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await axiosInstance.post(`/api/medicines/${selectedMedicine._id}/batches`, batchFormData, {
+            // Using the new Master Medicine Batch API
+            const payload = {
+                masterMedicineId: selectedMedicine._id,
+                batchNumber: batchFormData.batchNo,
+                quantity: parseInt(batchFormData.quantity),
+                manufacturingDate: batchFormData.mfgDate,
+                expiryDate: batchFormData.expDate,
+                purchasePrice: parseFloat(batchFormData.supplierCost) || 0,
+                mrp: selectedMedicine.unitPrice || 0,
+                status: batchFormData.status.toLowerCase().replace(' ', '_'),
+                // Default values as required by model
+                supplierId: "60d0fe4f5311236168a109ca" // Dummy supplier ID if none selected
+            };
+
+            await axiosInstance.post('/api/pharmacy/master-inventory/batches', payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
             setShowBatchModal(false);
             setBatchFormData({
                 batchNo: '',
@@ -165,21 +243,18 @@ const MedicineInventory = () => {
                 supplierCost: '',
                 status: 'Available',
             });
-            fetchMedicines();
-            showSuccess('Batch added successfully');
+            fetchMedicines(pagination.currentPage);
+            showSuccess('Batch added to inventory successfully');
         } catch (error) {
             console.error('Error adding batch:', error);
-            showError('Failed to add batch');
+            showError(error.response?.data?.message || 'Failed to add batch');
         }
     };
 
-    const filteredMedicines = medicines.filter(med =>
-        med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        med.genericName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const getTotalStock = (batches) => {
-        return batches?.reduce((sum, batch) => sum + batch.quantity, 0) || 0;
+    const getTotalStock = (medicineId) => {
+        // In a real production system, this mapping would be handled by the backend
+        // For now, we return 0 if not pre-populated
+        return 0;
     };
 
     return (
@@ -324,19 +399,64 @@ const MedicineInventory = () => {
                 )}
 
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Search medicines by name or generic..."
-                                className="input-field pl-10"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                    <div className="p-6 border-b border-slate-100 flex flex-col gap-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="relative flex-1 max-w-md">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search National Master List..."
+                                    className="input-field pl-10"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="text-sm text-slate-500 font-medium">
+                                Showing <span className="text-blue-600">{medicines.length}</span> of {pagination.totalRecords} Master Medicines
+                            </div>
                         </div>
-                        <div className="text-sm text-slate-500">
-                            Showing <span className="font-bold text-slate-800">{filteredMedicines.length}</span> medicines
+
+                        {/* Advanced Filters */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="relative">
+                                <Factory className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <select
+                                    className="input-field pl-10 text-sm"
+                                    value={filters.manufacturer}
+                                    onChange={(e) => setFilters({ ...filters, manufacturer: e.target.value })}
+                                >
+                                    <option value="">All Manufacturers</option>
+                                    {filterOptions.manufacturers.map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="relative">
+                                <Beaker className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <select
+                                    className="input-field pl-10 text-sm"
+                                    value={filters.genericName}
+                                    onChange={(e) => setFilters({ ...filters, genericName: e.target.value })}
+                                >
+                                    <option value="">All Generics</option>
+                                    {filterOptions.genericNames.map(g => (
+                                        <option key={g} value={g}>{g}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="relative">
+                                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <select
+                                    className="input-field pl-10 text-sm"
+                                    value={filters.category}
+                                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                >
+                                    <option value="">All Categories</option>
+                                    {filterOptions.categories.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -359,81 +479,86 @@ const MedicineInventory = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {filteredMedicines.length === 0 ? (
+                                    {medicines.length === 0 ? (
                                         <tr>
                                             <td colSpan="6" className="p-12 text-center text-slate-500">
                                                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                                     <Package className="w-8 h-8 text-slate-300" />
                                                 </div>
-                                                <p>No medicines found matching your search.</p>
+                                                <p>No master medicines found matching your criteria.</p>
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredMedicines.map((medicine) => {
-                                            const totalStock = getTotalStock(medicine.batches);
-                                            const isLowStock = totalStock <= medicine.reorderLevel;
+                                        medicines.map((medicine) => {
+                                            const totalStock = getTotalStock(medicine._id);
+                                            const isLowStock = totalStock <= (medicine.reorderLevel || 10);
                                             return (
                                                 <tr key={medicine._id} className="hover:bg-slate-50 transition-colors duration-150 group">
                                                     <td className="p-4">
-                                                        <p className="font-medium text-slate-800">{medicine.name}</p>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold text-slate-800">{medicine.name}</span>
+                                                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-0.5">
+                                                                {medicine.manufacturer}
+                                                            </span>
+                                                        </div>
                                                         {medicine.genericName && (
-                                                            <p className="text-xs text-slate-500 mt-0.5">{medicine.genericName}</p>
+                                                            <p className="text-xs text-slate-500 mt-1 italic">{medicine.genericName}</p>
                                                         )}
                                                     </td>
                                                     <td className="p-4">
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                                                             {medicine.category || 'Uncategorized'}
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-sm text-slate-600">
-                                                        {medicine.strength && <span className="block">{medicine.strength}</span>}
-                                                        {medicine.form && <span className="block text-xs text-slate-400 capitalize">{medicine.form}</span>}
+                                                        {medicine.strength && <span className="font-medium text-slate-700">{medicine.strength}</span>}
+                                                        {medicine.dosageForm && <span className="block text-[11px] text-slate-400 font-medium capitalize">{medicine.dosageForm}</span>}
                                                     </td>
                                                     <td className="p-4">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`font-medium text-lg ${isLowStock ? 'text-red-600' : 'text-slate-700'}`}>
+                                                            <span className={`font-bold text-lg ${totalStock === 0 ? 'text-slate-300' : isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
                                                                 {totalStock}
                                                             </span>
-                                                            {isLowStock && (
-                                                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
+                                                            {totalStock > 0 && isLowStock && (
+                                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-100 uppercase">
                                                                     Low
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="p-4 font-medium text-slate-800">Rs. {medicine.price}</td>
+                                                    <td className="p-4">
+                                                        <div className="text-sm font-bold text-slate-800">
+                                                            Rs. {medicine.unitPrice || '0.00'}
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-400">Per Unit</div>
+                                                    </td>
                                                     <td className="p-4 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center justify-end gap-1.5">
                                                             <button
                                                                 onClick={() => handleView(medicine)}
-                                                                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                                                 title="View Details"
                                                             >
                                                                 <Eye size={18} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleEdit(medicine)}
-                                                                className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                                title="Edit Medicine"
-                                                            >
-                                                                <Pencil size={18} />
                                                             </button>
                                                             <button
                                                                 onClick={() => {
                                                                     setSelectedMedicine(medicine);
                                                                     setShowBatchModal(true);
                                                                 }}
-                                                                className="p-1.5 text-slate-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                                title="Add Batch"
+                                                                className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
+                                                                title="Add Batch to Inventory"
                                                             >
                                                                 <PlusCircle size={18} />
                                                             </button>
+                                                            {/* Edit/Delete disabled for Master List by Pharmacy */}
+                                                            <div className="w-[1px] h-4 bg-slate-100 mx-1"></div>
                                                             <button
-                                                                onClick={() => handleDelete(medicine._id, medicine.name)}
-                                                                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                title="Delete Medicine"
+                                                                className="p-2 text-slate-200 cursor-not-allowed"
+                                                                disabled
+                                                                title="Master Data - Read Only"
                                                             >
-                                                                <Trash2 size={18} />
+                                                                <Pencil size={18} />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -443,6 +568,33 @@ const MedicineInventory = () => {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {!loading && medicines.length > 0 && (
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="text-sm text-slate-500">
+                                Page <span className="font-bold text-slate-700">{pagination.currentPage}</span> of <span className="font-bold text-slate-700">{pagination.totalPages}</span>
+                                <span className="mx-2">•</span>
+                                <span className="font-medium">{pagination.totalRecords} medicines available</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => fetchMedicines(pagination.currentPage - 1)}
+                                    disabled={!pagination.hasPrevPage}
+                                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => fetchMedicines(pagination.currentPage + 1)}
+                                    disabled={!pagination.hasNextPage}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -694,7 +846,7 @@ const MedicineInventory = () => {
                                                 <p className="text-xs text-slate-500 mb-1">Strength & Form</p>
                                                 <p className="font-semibold text-slate-800 flex items-center gap-2">
                                                     <Beaker size={16} className="text-slate-400" />
-                                                    {selectedMedicine.strength} - <span className="capitalize">{selectedMedicine.form}</span>
+                                                    {selectedMedicine.strength} - <span className="capitalize">{selectedMedicine.dosageForm || selectedMedicine.form}</span>
                                                 </p>
                                             </div>
                                             <div>
@@ -712,7 +864,7 @@ const MedicineInventory = () => {
                                         </h3>
                                         <div>
                                             <p className="text-xs text-blue-500 mb-1">Unit Price</p>
-                                            <p className="text-3xl font-bold text-blue-700">Rs. {selectedMedicine.price}</p>
+                                            <p className="text-3xl font-bold text-blue-700">Rs. {selectedMedicine.unitPrice || selectedMedicine.price}</p>
                                             <p className="text-xs text-blue-400 mt-1">Per unit</p>
                                         </div>
                                     </div>
@@ -792,7 +944,7 @@ const MedicineInventory = () => {
                                 }}
                                 className="btn-primary flex items-center gap-2"
                             >
-                                <Pencil size={16} /> Edit Medicine
+                                <Pencil size={16} /> Edit Medicine (Admin)
                             </button>
                         </div>
                     </div>

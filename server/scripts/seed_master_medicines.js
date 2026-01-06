@@ -3,270 +3,115 @@ const mongoose = require('mongoose');
 const MasterMedicine = require('../models/MasterMedicine');
 const connectDB = require('../config/db');
 
-// Sample medicine data
-const sampleMedicines = [
-    {
-        name: 'Paracetamol',
-        genericName: 'Acetaminophen',
-        category: 'Analgesic',
-        manufacturer: 'GSK',
-        manufacturerCountry: 'Pakistan',
-        strength: '500mg',
-        dosageForm: 'tablet',
-        packSize: '10 tablets',
-        route: 'oral',
-        unitPrice: 5,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Pain reliever and fever reducer'
-    },
-    {
-        name: 'Amoxicillin',
-        genericName: 'Amoxicillin',
-        category: 'Antibiotic',
-        manufacturer: 'Abbott',
-        manufacturerCountry: 'Pakistan',
-        strength: '250mg',
-        dosageForm: 'capsule',
-        packSize: '20 capsules',
-        route: 'oral',
-        unitPrice: 15,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Penicillin antibiotic for bacterial infections'
-    },
-    {
-        name: 'Ibuprofen',
-        genericName: 'Ibuprofen',
-        category: 'Anti-inflammatory',
-        manufacturer: 'Pfizer',
-        manufacturerCountry: 'Pakistan',
-        strength: '400mg',
-        dosageForm: 'tablet',
-        packSize: '10 tablets',
-        route: 'oral',
-        unitPrice: 8,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Nonsteroidal anti-inflammatory drug (NSAID)'
-    },
-    {
-        name: 'Cetirizine',
-        genericName: 'Cetirizine Hydrochloride',
-        category: 'Antihistamine',
-        manufacturer: 'Getz Pharma',
-        manufacturerCountry: 'Pakistan',
-        strength: '10mg',
-        dosageForm: 'tablet',
-        packSize: '10 tablets',
-        route: 'oral',
-        unitPrice: 6,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Antihistamine for allergies'
-    },
-    {
-        name: 'Metformin',
-        genericName: 'Metformin Hydrochloride',
-        category: 'Endocrine',
-        manufacturer: 'Novartis',
-        manufacturerCountry: 'Pakistan',
-        strength: '500mg',
-        dosageForm: 'tablet',
-        packSize: '30 tablets',
-        route: 'oral',
-        unitPrice: 12,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Oral diabetes medicine for type 2 diabetes'
-    },
-    {
-        name: 'Omeprazole',
-        genericName: 'Omeprazole',
-        category: 'Gastrointestinal',
-        manufacturer: 'Searle',
-        manufacturerCountry: 'Pakistan',
-        strength: '20mg',
-        dosageForm: 'capsule',
-        packSize: '14 capsules',
-        route: 'oral',
-        unitPrice: 18,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Proton pump inhibitor for acid reflux'
-    },
-    {
-        name: 'Azithromycin',
-        genericName: 'Azithromycin',
-        category: 'Antibiotic',
-        manufacturer: 'Pfizer',
-        manufacturerCountry: 'Pakistan',
-        strength: '500mg',
-        dosageForm: 'tablet',
-        packSize: '3 tablets',
-        route: 'oral',
-        unitPrice: 25,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Macrolide antibiotic for bacterial infections'
-    },
-    {
-        name: 'Salbutamol Inhaler',
-        genericName: 'Salbutamol',
-        category: 'Respiratory',
-        manufacturer: 'GSK',
-        manufacturerCountry: 'Pakistan',
-        strength: '100mcg',
-        dosageForm: 'inhaler',
-        packSize: '200 doses',
-        route: 'inhalation',
-        unitPrice: 350,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Bronchodilator for asthma and COPD'
-    },
-    {
-        name: 'Atorvastatin',
-        genericName: 'Atorvastatin Calcium',
-        category: 'Cardiovascular',
-        manufacturer: 'Abbott',
-        manufacturerCountry: 'Pakistan',
-        strength: '20mg',
-        dosageForm: 'tablet',
-        packSize: '30 tablets',
-        route: 'oral',
-        unitPrice: 22,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Statin for lowering cholesterol'
-    },
-    {
-        name: 'Multivitamin Syrup',
-        genericName: 'Multivitamin',
-        category: 'Vitamin/Supplement',
-        manufacturer: 'Martin Dow',
-        manufacturerCountry: 'Pakistan',
-        strength: '120ml',
-        dosageForm: 'syrup',
-        packSize: '120ml bottle',
-        route: 'oral',
-        unitPrice: 150,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Multivitamin supplement for general health'
-    },
-    {
-        name: 'Diclofenac Gel',
-        genericName: 'Diclofenac Sodium',
-        category: 'Dermatological',
-        manufacturer: 'Novartis',
-        manufacturerCountry: 'Pakistan',
-        strength: '1%',
-        dosageForm: 'gel',
-        packSize: '30g tube',
-        route: 'topical',
-        unitPrice: 180,
-        prescriptionRequired: false,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Topical NSAID for pain and inflammation'
-    },
-    {
-        name: 'Ciprofloxacin Eye Drops',
-        genericName: 'Ciprofloxacin',
-        category: 'Ophthalmic',
-        manufacturer: 'Allergan',
-        manufacturerCountry: 'Pakistan',
-        strength: '0.3%',
-        dosageForm: 'drops',
-        packSize: '5ml',
-        route: 'ophthalmic',
-        unitPrice: 95,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Antibiotic eye drops for bacterial eye infections'
-    },
-    {
-        name: 'Losartan',
-        genericName: 'Losartan Potassium',
-        category: 'Cardiovascular',
-        manufacturer: 'Merck',
-        manufacturerCountry: 'Pakistan',
-        strength: '50mg',
-        dosageForm: 'tablet',
-        packSize: '30 tablets',
-        route: 'oral',
-        unitPrice: 28,
-        prescriptionRequired: true,
-        drapApproved: true,
-        drapSyncStatus: 'synced',
-        description: 'Angiotensin II receptor blocker for hypertension'
-    },
-    {
-        name: 'Insulin Glargine',
-        genericName: 'Insulin Glargine',
-        category: 'Endocrine',
-        manufacturer: 'Sanofi',
-        manufacturerCountry: 'Pakistan',
-        strength: '100 units/ml',
-        dosageForm: 'injection',
-        packSize: '10ml vial',
-        route: 'parenteral',
-        unitPrice: 1200,
-        prescriptionRequired: true,
-        drapApproved: true,
-        isControlledSubstance: false,
-        drapSyncStatus: 'synced',
-        description: 'Long-acting insulin for diabetes management'
-    },
-    {
-        name: 'Tramadol',
-        genericName: 'Tramadol Hydrochloride',
-        category: 'Analgesic',
-        manufacturer: 'Pfizer',
-        manufacturerCountry: 'Pakistan',
-        strength: '50mg',
-        dosageForm: 'capsule',
-        packSize: '10 capsules',
-        route: 'oral',
-        unitPrice: 35,
-        prescriptionRequired: true,
-        drapApproved: true,
-        isControlledSubstance: true,
-        controlledSubstanceSchedule: 'Schedule IV',
-        drapSyncStatus: 'synced',
-        description: 'Opioid pain medication for moderate to severe pain'
-    }
+// Production-grade Pakistani pharmaceutical portfolio
+const pakistaniMedicines = [
+    // Atco Laboratories
+    { name: 'Ascard', genericName: 'Aspirin', category: 'Analgesic', manufacturer: 'Atco Laboratories', strength: '75mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true, description: 'Blood thinner/Analgesic' },
+    { name: 'Loprin', genericName: 'Aspirin', category: 'Analgesic', manufacturer: 'Atco Laboratories', strength: '75mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Cardnit', genericName: 'GTN', category: 'Cardiovascular', manufacturer: 'Atco Laboratories', strength: '2.6mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Atorva', genericName: 'Atorvastatin', category: 'Cardiovascular', manufacturer: 'Atco Laboratories', strength: '20mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Renitec', genericName: 'Enalapril', category: 'Cardiovascular', manufacturer: 'Atco Laboratories', strength: '10mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Getz Pharma
+    { name: 'Zetro', genericName: 'Ceftriaxone', category: 'Antibiotic', manufacturer: 'Getz Pharma', strength: '1g', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Risek', genericName: 'Omeprazole', category: 'Gastrointestinal', manufacturer: 'Getz Pharma', strength: '40mg', dosageForm: 'capsule', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Lipiget', genericName: 'Atorvastatin', category: 'Cardiovascular', manufacturer: 'Getz Pharma', strength: '20mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Novidat', genericName: 'Ciprofloxacin', category: 'Antibiotic', manufacturer: 'Getz Pharma', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Surbex-Z', genericName: 'Multivitamin', category: 'Vitamin/Supplement', manufacturer: 'Getz Pharma', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // GSK Pakistan
+    { name: 'Panadol', genericName: 'Paracetamol', category: 'Analgesic', manufacturer: 'GSK Pakistan', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Augmentin', genericName: 'Amoxicillin + Clavulanate', category: 'Antibiotic', manufacturer: 'GSK Pakistan', strength: '625mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Calpol', genericName: 'Paracetamol', category: 'Analgesic', manufacturer: 'GSK Pakistan', strength: '120mg/5ml', dosageForm: 'syrup', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Zantac', genericName: 'Ranitidine', category: 'Gastrointestinal', manufacturer: 'GSK Pakistan', strength: '150mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true, isDiscontinued: true },
+    { name: 'Ventolin', genericName: 'Salbutamol', category: 'Respiratory', manufacturer: 'GSK Pakistan', strength: '100mcg', dosageForm: 'inhaler', route: 'inhalation', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Abbott Pakistan
+    { name: 'Brufen', genericName: 'Ibuprofen', category: 'Anti-inflammatory', manufacturer: 'Abbott Pakistan', strength: '400mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Cremaffin', genericName: 'Laxative', category: 'Gastrointestinal', manufacturer: 'Abbott Pakistan', strength: 'Standard', dosageForm: 'syrup', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Thyronorm', genericName: 'Levothyroxine', category: 'Endocrine', manufacturer: 'Abbott Pakistan', strength: '50mcg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Digene', genericName: 'Antacid', category: 'Gastrointestinal', manufacturer: 'Abbott Pakistan', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Ensure', genericName: 'Nutritional Supplement', category: 'Vitamin/Supplement', manufacturer: 'Abbott Pakistan', strength: '400g', dosageForm: 'other', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // The Searle Company
+    { name: 'Hydryllin', genericName: 'Aminophylline Compound', category: 'Respiratory', manufacturer: 'The Searle Company', strength: 'Standard', dosageForm: 'syrup', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Gravinate', genericName: 'Dimenhydrinate', category: 'Gastrointestinal', manufacturer: 'The Searle Company', strength: '50mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Disprin', genericName: 'Aspirin', category: 'Analgesic', manufacturer: 'The Searle Company', strength: '300mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Fefol', genericName: 'Iron + Folic Acid', category: 'Vitamin/Supplement', manufacturer: 'The Searle Company', strength: 'Standard', dosageForm: 'capsule', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Nuberol', genericName: 'Paracetamol + Orphenadrine', category: 'Analgesic', manufacturer: 'The Searle Company', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Highnoon Laboratories
+    { name: 'Concor', genericName: 'Bisoprolol', category: 'Cardiovascular', manufacturer: 'Highnoon Laboratories', strength: '5mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Xplended', genericName: 'Metformin', category: 'Endocrine', manufacturer: 'Highnoon Laboratories', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Dayfine', genericName: 'Vitamin D', category: 'Vitamin/Supplement', manufacturer: 'Highnoon Laboratories', strength: '200,000 IU', dosageForm: 'capsule', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Lowplat', genericName: 'Clopidogrel', category: 'Cardiovascular', manufacturer: 'Highnoon Laboratories', strength: '75mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Myteka', genericName: 'Montelukast', category: 'Respiratory', manufacturer: 'Highnoon Laboratories', strength: '10mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Martin Dow
+    { name: 'Glucophage', genericName: 'Metformin', category: 'Endocrine', manufacturer: 'Martin Dow', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Valtec', genericName: 'Valsartan', category: 'Cardiovascular', manufacturer: 'Martin Dow', strength: '80mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Arbitel', genericName: 'Telmisartan', category: 'Cardiovascular', manufacturer: 'Martin Dow', strength: '40mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Myogesic', genericName: 'Orphenadrine + Paracetamol', category: 'Analgesic', manufacturer: 'Martin Dow', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Qalsan-D', genericName: 'Calcium + Vitamin D', category: 'Vitamin/Supplement', manufacturer: 'Martin Dow', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Hilton Pharma
+    { name: 'Insulin 30/70', genericName: 'Insulin', category: 'Endocrine', manufacturer: 'Hilton Pharma', strength: '100 IU/ml', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Glucovance', genericName: 'Metformin + Glibenclamide', category: 'Endocrine', manufacturer: 'Hilton Pharma', strength: '500mg/5mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Neuromet', genericName: 'Vitamin B12', category: 'Neurological', manufacturer: 'Hilton Pharma', strength: '500mcg', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Surbex-T', genericName: 'Multivitamin', category: 'Vitamin/Supplement', manufacturer: 'Hilton Pharma', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Zyloric', genericName: 'Allopurinol', category: 'Other', manufacturer: 'Hilton Pharma', strength: '100mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // AGP Limited
+    { name: 'Rigix', genericName: 'Cetirizine', category: 'Antihistamine', manufacturer: 'AGP Limited', strength: '10mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Sinemet', genericName: 'Levodopa + Carbidopa', category: 'Neurological', manufacturer: 'AGP Limited', strength: '250mg/25mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Tramal', genericName: 'Tramadol', category: 'Analgesic', manufacturer: 'AGP Limited', strength: '50mg', dosageForm: 'capsule', route: 'oral', drapSyncStatus: 'synced', drapApproved: true, isControlledSubstance: true },
+    { name: 'Angised', genericName: 'Isosorbide Dinitrate', category: 'Cardiovascular', manufacturer: 'AGP Limited', strength: '5mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Nuberol Forte', genericName: 'Paracetamol + Orphenadrine', category: 'Analgesic', manufacturer: 'AGP Limited', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Sami Pharmaceuticals
+    { name: 'Valsar', genericName: 'Valsartan', category: 'Cardiovascular', manufacturer: 'Sami Pharmaceuticals', strength: '80mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Atropine', genericName: 'Atropine Sulfate', category: 'Other', manufacturer: 'Sami Pharmaceuticals', strength: '1mg/ml', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Ketress', genericName: 'Ketorolac', category: 'Analgesic', manufacturer: 'Sami Pharmaceuticals', strength: '30mg/ml', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Fefan', genericName: 'Iron', category: 'Vitamin/Supplement', manufacturer: 'Sami Pharmaceuticals', strength: 'Standard', dosageForm: 'syrup', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Aminophylline', genericName: 'Aminophylline', category: 'Respiratory', manufacturer: 'Sami Pharmaceuticals', strength: '250mg/10ml', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Ferozsons Laboratories
+    { name: 'Xavor', genericName: 'Rivaroxaban', category: 'Cardiovascular', manufacturer: 'Ferozsons Laboratories', strength: '10mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Sofomac', genericName: 'Sofosbuvir', category: 'Antiviral', manufacturer: 'Ferozsons Laboratories', strength: '400mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Qbal', genericName: 'Methylcobalamin', category: 'Neurological', manufacturer: 'Ferozsons Laboratories', strength: '500mcg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Neodipar', genericName: 'Heparin', category: 'Cardiovascular', manufacturer: 'Ferozsons Laboratories', strength: '5000 IU/ml', dosageForm: 'injection', route: 'parenteral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Amiglow', genericName: 'Nutritional Supplement', category: 'Vitamin/Supplement', manufacturer: 'Ferozsons Laboratories', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Citi Pharma
+    { name: 'Citi-Met', genericName: 'Metformin', category: 'Endocrine', manufacturer: 'Citi Pharma', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Citi-Ace', genericName: 'Lisinopril', category: 'Cardiovascular', manufacturer: 'Citi Pharma', strength: '5mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Citi-Cold', genericName: 'Cold & Flu Formula', category: 'Other', manufacturer: 'Citi Pharma', strength: 'Standard', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Citi-Pain', genericName: 'Paracetamol', category: 'Analgesic', manufacturer: 'Citi Pharma', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Citi-Cal', genericName: 'Calcium', category: 'Vitamin/Supplement', manufacturer: 'Citi Pharma', strength: '500mg', dosageForm: 'tablet', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+
+    // Hamdard
+    { name: 'Safi', genericName: 'Herbal Blood Purifier', category: 'Other', manufacturer: 'Hamdard', strength: 'Standard', dosageForm: 'syrup', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Roghan Badam Shirin', genericName: 'Almond Oil', category: 'Other', manufacturer: 'Hamdard', strength: 'Standard', dosageForm: 'solution', route: 'other', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Joshanda', genericName: 'Herbal Cold Remedy', category: 'Other', manufacturer: 'Hamdard', strength: 'Standard', dosageForm: 'powder', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Itrifal Ustukhuddus', genericName: 'Herbal Laxative', category: 'Other', manufacturer: 'Hamdard', strength: 'Standard', dosageForm: 'other', route: 'oral', drapSyncStatus: 'synced', drapApproved: true },
+    { name: 'Arq Gulab', genericName: 'Rose Water', category: 'Other', manufacturer: 'Hamdard', strength: 'Standard', dosageForm: 'solution', route: 'other', drapSyncStatus: 'synced', drapApproved: true },
 ];
 
-// Function to seed medicines
-const seedMedicines = async (count = 15) => {
+const seedMedicines = async () => {
     try {
         await connectDB();
 
         console.log('Clearing existing master medicines...');
         await MasterMedicine.deleteMany({});
 
-        console.log(`Seeding ${Math.min(count, sampleMedicines.length)} master medicines...`);
+        console.log(`Seeding ${pakistaniMedicines.length} National Master Medicines (Pakistan Standards)...`);
 
-        const medicinesToSeed = sampleMedicines.slice(0, count);
-        const createdMedicines = await MasterMedicine.insertMany(medicinesToSeed);
+        const createdMedicines = await MasterMedicine.insertMany(pakistaniMedicines);
 
-        console.log(`✓ Successfully seeded ${createdMedicines.length} master medicines`);
-        console.log('\nSample medicines:');
+        console.log(`✓ Successfully seeded ${createdMedicines.length} master medicines!`);
+        console.log('\nPreview (First 5):');
         createdMedicines.slice(0, 5).forEach(med => {
-            console.log(`  - ${med.name} (${med.strength}) - ${med.manufacturer}`);
+            console.log(`  - [${med.manufacturer}] ${med.name} (${med.strength}) - Generic: ${med.genericName}`);
         });
 
         process.exit(0);
@@ -276,73 +121,4 @@ const seedMedicines = async (count = 15) => {
     }
 };
 
-// Function to seed large dataset for performance testing
-const seedLargeDataset = async (count = 1000) => {
-    try {
-        await connectDB();
-
-        console.log('Clearing existing master medicines...');
-        await MasterMedicine.deleteMany({});
-
-        console.log(`Generating ${count} master medicines for performance testing...`);
-
-        const manufacturers = ['GSK', 'Pfizer', 'Abbott', 'Novartis', 'Merck', 'Sanofi', 'Getz Pharma', 'Searle', 'Martin Dow', 'Allergan'];
-        const categories = ['Analgesic', 'Antibiotic', 'Antiviral', 'Antihistamine', 'Cardiovascular', 'Gastrointestinal', 'Respiratory', 'Endocrine', 'Dermatological', 'Ophthalmic'];
-        const dosageForms = ['tablet', 'capsule', 'syrup', 'injection', 'cream', 'gel', 'drops', 'inhaler'];
-        const strengths = ['5mg', '10mg', '25mg', '50mg', '100mg', '250mg', '500mg', '1g'];
-
-        const medicines = [];
-
-        for (let i = 0; i < count; i++) {
-            const manufacturer = manufacturers[Math.floor(Math.random() * manufacturers.length)];
-            const category = categories[Math.floor(Math.random() * categories.length)];
-            const dosageForm = dosageForms[Math.floor(Math.random() * dosageForms.length)];
-            const strength = strengths[Math.floor(Math.random() * strengths.length)];
-
-            medicines.push({
-                name: `Medicine-${i + 1}`,
-                genericName: `Generic-${i + 1}`,
-                category,
-                manufacturer,
-                manufacturerCountry: 'Pakistan',
-                strength,
-                dosageForm,
-                packSize: `${Math.floor(Math.random() * 50) + 10} units`,
-                route: 'oral',
-                unitPrice: Math.floor(Math.random() * 500) + 10,
-                prescriptionRequired: Math.random() > 0.5,
-                drapApproved: Math.random() > 0.2,
-                drapSyncStatus: 'synced',
-                description: `Test medicine ${i + 1} for performance testing`
-            });
-        }
-
-        // Insert in batches for better performance
-        const batchSize = 100;
-        let inserted = 0;
-
-        for (let i = 0; i < medicines.length; i += batchSize) {
-            const batch = medicines.slice(i, i + batchSize);
-            await MasterMedicine.insertMany(batch);
-            inserted += batch.length;
-            console.log(`Inserted ${inserted}/${count} medicines...`);
-        }
-
-        console.log(`✓ Successfully seeded ${count} master medicines for performance testing`);
-        process.exit(0);
-    } catch (error) {
-        console.error('Error seeding large dataset:', error);
-        process.exit(1);
-    }
-};
-
-// Parse command line arguments
-const args = process.argv.slice(2);
-const command = args[0];
-const count = parseInt(args[1]) || 15;
-
-if (command === 'large') {
-    seedLargeDataset(count);
-} else {
-    seedMedicines(count);
-}
+seedMedicines();
