@@ -273,8 +273,9 @@ masterMedicineSchema.statics.searchWithPagination = async function (filters, opt
     } = options;
 
     const query = {
-        isActive: true,
-        isDiscontinued: false
+        // Broaden query for troubleshooting
+        isActive: { $ne: false },
+        isDiscontinued: { $ne: true }
     };
 
     // Text search
