@@ -114,6 +114,17 @@ const patientSchema = new mongoose.Schema({
         default: Date.now,
     },
 
+    // --- Unified Fields from StaffPatient ---
+    admissionDetails: {
+        department: String,
+        visitReason: String,
+        admissionDate: { type: Date, default: Date.now },
+        dischargedDate: Date,
+        roomNumber: String,
+        bedNumber: String
+    },
+    // ----------------------------------------
+
     // PMI & MPI Extensions
     healthId: {
         type: String,
@@ -183,6 +194,16 @@ const patientSchema = new mongoose.Schema({
         contact: String
     }
 });
+
+// Optimization Indexes
+patientSchema.index({ hospitalId: 1, isDeleted: 1 }); // Common filter
+patientSchema.index({ hospitalId: 1, 'admissionDetails.department': 1 }); // Department filter
+patientSchema.index({
+    name: 'text',
+    cnic: 'text',
+    patientId: 'text',
+    'contact.phone': 'text'
+}); // Text Search
 
 // Generate unique patient ID
 patientSchema.pre('validate', async function () {

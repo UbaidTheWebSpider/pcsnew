@@ -60,41 +60,8 @@ const loginUser = async (req, res) => {
 
         if (user && (await user.matchPassword(password))) {
 
-            // Self-healing: Ensure pharmacy association for relevant roles
-            if (['pharmacy', 'hospital_admin', 'pharmacist'].includes(user.role)) {
-                try {
-                    let pharmacyUser = await PharmacyUser.findOne({ userId: user._id });
-
-                    if (!pharmacyUser) {
-                        console.log(`[Auth] Creating missing pharmacy association for ${user.email}`);
-
-                        // Find a default pharmacy
-                        let pharmacy = await Pharmacy.findOne({ 'basicProfile.operationalStatus': 'Active' })
-                            || await Pharmacy.findOne(); // Fallback to any pharmacy
-
-                        if (pharmacy) {
-                            await PharmacyUser.create({
-                                userId: user._id,
-                                pharmacyId: pharmacy._id,
-                                pharmacyRole: user.role === 'hospital_admin' ? 'pharmacy_admin' : 'pharmacy_admin', // Default role
-                                status: 'active',
-                                permissions: ['all']
-                            });
-                            console.log(`[Auth] Successfully linked ${user.email} to ${pharmacy.basicProfile.pharmacyName}`);
-                        } else {
-                            console.warn('[Auth] No pharmacy found to link user');
-                        }
-                    } else if (pharmacyUser.status !== 'active') {
-                        // Reactivate if needed
-                        console.log(`[Auth] Reactivating pharmacy user for ${user.email}`);
-                        pharmacyUser.status = 'active';
-                        await pharmacyUser.save();
-                    }
-                } catch (err) {
-                    console.error('[Auth] Error ensuring pharmacy association:', err);
-                    // Don't block login, but log error
-                }
-            }
+            // Self-healing removed: Automatic pharmacy association logic was unsafe.
+            // Pharmacy association should be handled via explicit invitation or admin dashboard.
 
             res.json({
                 _id: user._id,
