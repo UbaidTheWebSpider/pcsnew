@@ -79,53 +79,78 @@ class PatientService {
      * Maps Unified Patient model back to the expected StaffPatient format for frontend compatibility
      */
     static async getHospitalPatients(hospitalId, queryParams) {
-        const { search, department, type, page = 1, limit = 10 } = queryParams;
+        try {
+            const { search, department, type, page = 1, limit = 10 } = queryParams;
 
-        let query = { hospitalId, isActive: true };
+            let query = { hospitalId, isActive: true };
 
-        if (search) {
-            query.$or = [
-                { 'personalInfo.fullName': { $regex: search, $options: 'i' } },
-                { 'personalInfo.cnic': { $regex: search, $options: 'i' } },
-                { 'contactInfo.mobileNumber': { $regex: search, $options: 'i' } },
-                { patientId: { $regex: search, $options: 'i' } },
-                { healthId: { $regex: search, $options: 'i' } }
-            ];
+            if (search) {
+                query.$or = [
+                    { 'personalInfo.fullName': { $regex: search, $options: 'i' } },
+                    { 'personalInfo.cnic': { $regex: search, $options: 'i' } },
+                    { 'contactInfo.mobileNumber': { $regex: search, $options: 'i' } },
+                    { patientId: { $regex: search, $options: 'i' } },
+                    { healthId: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            if (department) query['admissionDetails.department'] = department;
+            if (type) query['admissionDetails.patientType'] = type;
+
+            console.log('DEBUG: PatientService query:', JSON.stringify(query, null, 2));
+
+            const skip = (page - 1) * limit;
+            console.log('DEBUG: Skip:', skip, 'Limit:', limit);
+
+            const total = await StaffPatient.countDocuments(query);
+            console.log('DEBUG: Total found:', total);
+
+            const patients = await StaffPatient.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit))
+                .populate('admissionDetails.assignedDoctorId', 'name specialization');
+
+            console.log('DEBUG: Patients retrieved:', patients.length);
+
+            // Map data to the format expected by the frontend (already in StaffPatient format mostly)
+            const mappedPatients = patients.map(p => {
+                try {
+                    return {
+                        _id: p._id,
+                        patientId: p.patientId,
+                        personalInfo: p.personalInfo,
+                        contactInfo: p.contactInfo,
+                        admissionDetails: p.admissionDetails,
+                        medicalBackground: p.medicalBackground,
+                        healthId: p.healthId,
+                        healthCardQr: p.healthCardQr,
+                        healthCardIssueDate: p.healthCardIssueDate,
+                        hospitalId: p.hospitalId,
+                        createdAt: p.createdAt,
+                        isActive: p.isActive
+                    };
+                } catch (mapErr) {
+                    console.error('ERROR MAPPING PATIENT:', p._id, mapErr);
+                    return null;
+                }
+            }).filter(p => p !== null);
+
+            console.log('DEBUG: Mapped patients count:', mappedPatients.length);
+
+            return {
+                data: mappedPatients,
+                total,
+                page: parseInt(page),
+                totalPages: Math.ceil(total / limit)
+            };
+
+        } catch (error) {
+            console.error('CRITICAL DATABASE ERROR IN getHospitalPatients:');
+            console.error('Query was:', JSON.stringify(queryParams));
+            console.error('Error Details:', error);
+            throw error;
         }
-
-        if (department) query['admissionDetails.department'] = department;
-        if (type) query['admissionDetails.patientType'] = type;
-
-        const skip = (page - 1) * limit;
-        const total = await StaffPatient.countDocuments(query);
-        const patients = await StaffPatient.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .populate('admissionDetails.assignedDoctorId', 'name specialization');
-
-        // Map data to the format expected by the frontend (already in StaffPatient format mostly)
-        const mappedPatients = patients.map(p => ({
-            _id: p._id,
-            patientId: p.patientId,
-            personalInfo: p.personalInfo,
-            contactInfo: p.contactInfo,
-            admissionDetails: p.admissionDetails,
-            medicalBackground: p.medicalBackground,
-            healthId: p.healthId,
-            healthCardQr: p.healthCardQr,
-            healthCardIssueDate: p.healthCardIssueDate,
-            hospitalId: p.hospitalId,
-            createdAt: p.createdAt,
-            isActive: p.isActive
-        }));
-
-        return {
-            data: mappedPatients,
-            total,
-            page: parseInt(page),
-            totalPages: Math.ceil(total / limit)
-        };
     }
 
     /**

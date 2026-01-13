@@ -44,7 +44,15 @@ exports.registerPatient = async (req, res) => {
 // @access  Private
 exports.getAllPatients = async (req, res) => {
     try {
+        console.log('DEBUG: req.user:', {
+            id: req.user?._id,
+            role: req.user?.role,
+            hospitalId: req.user?.hospitalId
+        });
+
         const hospitalId = req.user.hospitalId || req.user._id;
+        console.log('DEBUG: Using hospitalId:', hospitalId);
+
         const result = await PatientService.getHospitalPatients(hospitalId, req.query);
 
         res.status(200).json({
@@ -60,7 +68,11 @@ exports.getAllPatients = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Fetch Patients Error:', error);
+        console.error('SERVER ERROR IN getAllPatients:');
+        console.error('Error Name:', error.name);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+
         res.status(500).json({
             success: false,
             message: 'Failed to fetch patients',
