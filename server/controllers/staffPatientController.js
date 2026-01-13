@@ -61,54 +61,10 @@ exports.getAllPatients = async (req, res) => {
 
     } catch (error) {
         console.error('Fetch Patients Error:', error);
-
-        // FAIL-SAFE FALLBACK FOR DEMO
-        const MOCK_PATIENTS = [
-            {
-                _id: 'mock-1',
-                patientId: 'P-2025-001',
-                name: 'Javed Iqbal',
-                personalInfo: { fullName: 'Javed Iqbal', fatherName: 'Muhammad Iqbal', cnic: '42101-1234567-1', gender: 'male', dateOfBirth: '1980-01-01', bloodGroup: 'A+' },
-                contactInfo: { mobileNumber: '0300-1234567', address: 'Karachi' },
-                healthId: 'HID-887766',
-                healthCardQr: JSON.stringify({ id: 'HID-887766', name: 'Javed Iqbal' }),
-                healthCardIssueDate: new Date(),
-                admissionDetails: { department: 'Cardiology' }
-            },
-            {
-                _id: 'mock-2',
-                patientId: 'P-2025-002',
-                name: 'Fatima Noor',
-                personalInfo: { fullName: 'Fatima Noor', fatherName: 'Noor Ahmed', cnic: '42101-7654321-2', gender: 'female', dateOfBirth: '1995-05-15', bloodGroup: 'B+' },
-                contactInfo: { mobileNumber: '0321-9876543', address: 'Lahore' },
-                healthId: 'HID-112233',
-                healthCardQr: JSON.stringify({ id: 'HID-112233', name: 'Fatima Noor' }),
-                healthCardIssueDate: new Date(),
-                admissionDetails: { department: 'Pediatrics' }
-            },
-            {
-                _id: '694578b68328bd6b839101c4',
-                patientId: 'P-2025-ZIA',
-                name: 'Zia',
-                personalInfo: { fullName: 'Zia', gender: 'male', dateOfBirth: '1990-01-01', bloodGroup: 'O+' },
-                contactInfo: { mobileNumber: '0300-0000000', address: 'Unknown' },
-                healthId: 'HID-MKCAEM21-54DC85',
-                healthCardQr: JSON.stringify({ id: 'HID-MKCAEM21-54DC85', name: 'Zia' }),
-                healthCardIssueDate: new Date(),
-            }
-        ];
-
-        console.log('Returning MOCK DATA due to error or empty state');
-        res.status(200).json({
-            success: true,
-            count: MOCK_PATIENTS.length,
-            data: MOCK_PATIENTS,
-            pagination: {
-                page: 1,
-                limit: 10,
-                total: MOCK_PATIENTS.length,
-                totalPages: 1
-            }
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch patients',
+            error: error.message
         });
     }
 };
