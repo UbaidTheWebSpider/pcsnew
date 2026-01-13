@@ -1,4 +1,5 @@
 const Patient = require('../models/Patient');
+const StaffPatient = require('../models/StaffPatient');
 const User = require('../models/User');
 
 class PatientService {
@@ -93,11 +94,11 @@ class PatientService {
         }
 
         if (department) query['admissionDetails.department'] = department;
-        if (type) query.patientType = type; // Note: moved from admissionDetails in StaffPatient
+        if (type) query.patientType = type;
 
         const skip = (page - 1) * limit;
-        const total = await Patient.countDocuments(query);
-        const patients = await Patient.find(query)
+        const total = await StaffPatient.countDocuments(query);
+        const patients = await StaffPatient.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
