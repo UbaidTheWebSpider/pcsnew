@@ -136,60 +136,110 @@ const HealthIdScanner = () => {
     const startScanning = async () => {
         if (isScanning) return;
 
+        setScannerError(null);
+        setIsScanning(true);
+
+        // Wait for DOM to be ready
+        setTimeout(async () => {
+            try {
+                // Check if element exists
+                const element = document.getElementById(readerElementId);
+                if (!element) {
+                    throw new Error('Scanner element not found. Please try again.');
+                }
+
+                const scanner = new Html5Qrcode(readerElementId);
+                scannerRef.current = scanner;
+
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                    formatsToSupport: [
+                        0, // QR_CODE
+                        8, // CODE_128
+                        13, // EAN_13
+                        2  // CODE_39
+                    ]
+                };
+
+                // Start scanner directly - it will request permissions
+                await scanner.start(
+                    selectedCamera || { facingMode: 'environment' },
+                    config,
+                    (decodedText) => {
+                        // Success callback
+                        setScanResult(decodedText);
+                        setCameraPermission('granted');
+
+                        // Extract and validate ID
+                        const healthId = extractHealthId(decodedText);
+
+                        if (healthId && isValidHealthId(healthId)) {
+                            fetchPatientData(healthId);
+                        } else {
+                            Swal.fire('Invalid Format', 'The scanned code does not contain a valid Health ID', 'warning');
+                        }
+                    },
+                    (errorMessage) => {
+                        // Error callback (scanning in progress, ignore)
+                    }
+                );
+
+                setCameraPermission('granted');
+
+            } catch (error) {
+                console.error('Camera start error:', error);
+                setIsScanning(false);
+
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    setCameraPermission('denied');
+                    setScannerError('Camera permission denied. Please allow camera access in your browser settings.');
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    setScannerError('No camera found on this device.');
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    setScannerError('Camera is already in use by another application. Please close other apps using the camera.');
+                } else if (error.name === 'OverconstrainedError') {
+                    setScannerError('Camera does not support the required settings. Trying alternative configuration...');
+                    // Retry with simpler config
+                    retryWithFallbackConfig();
+                } else {
+                    setScannerError(`Camera error: ${error.message || 'Unknown error'}. Please refresh the page and try again.`);
+                }
+            }
+        }, 100); // 100ms delay for DOM to render
+    };
+
+    const retryWithFallbackConfig = async () => {
         try {
-            // Request camera permission
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop()); // Stop immediately, just checking permission
-
-            setCameraPermission('granted');
-            setScannerError(null);
-            setIsScanning(true);
-
             const scanner = new Html5Qrcode(readerElementId);
             scannerRef.current = scanner;
 
-            const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-                formatsToSupport: [
-                    0, // QR_CODE
-                    8, // CODE_128
-                    13, // EAN_13
-                    2  // CODE_39
-                ]
+            // Simpler configuration
+            const fallbackConfig = {
+                fps: 5,
+                qrbox: 200
             };
 
             await scanner.start(
-                selectedCamera || { facingMode: 'environment' },
-                config,
+                { facingMode: 'user' }, // Try front camera
+                fallbackConfig,
                 (decodedText) => {
-                    // Success callback
                     setScanResult(decodedText);
-
-                    // Extract and validate ID
                     const healthId = extractHealthId(decodedText);
-
                     if (healthId && isValidHealthId(healthId)) {
                         fetchPatientData(healthId);
-                    } else {
-                        Swal.fire('Invalid Format', 'The scanned code does not contain a valid Health ID', 'warning');
                     }
                 },
-                (errorMessage) => {
-                    // Error callback (scanning in progress, ignore)
-                }
+                () => { }
             );
 
-        } catch (error) {
-            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                setCameraPermission('denied');
-                setScannerError('Camera permission denied. Please allow camera access in your browser settings.');
-            } else if (error.name === 'NotFoundError') {
-                setScannerError('No camera found on this device.');
-            } else {
-                setScannerError('Failed to start camera. Please try again.');
-            }
+            setIsScanning(true);
+            setScannerError(null);
+            setCameraPermission('granted');
+        } catch (retryError) {
+            console.error('Fallback config failed:', retryError);
+            setScannerError('Unable to initialize camera with any configuration. Please check browser permissions.');
             setIsScanning(false);
         }
     };
