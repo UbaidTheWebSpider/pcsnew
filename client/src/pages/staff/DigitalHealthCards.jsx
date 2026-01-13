@@ -8,7 +8,7 @@ import { mapStaffPatientsToDisplay } from '../../utils/patientMapper';
 
 const DigitalHealthCards = () => {
     const [patients, setPatients] = useState([]);
-    const [filteredPatients, setFilteredPatients] = useState([]);
+    // const [filteredPatients, setFilteredPatients] = useState([]); // REMOVED: Using direct state management like PatientList
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, with-id, without-id
@@ -20,12 +20,14 @@ const DigitalHealthCards = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/staff/patients', {
-                params: { page: 1, limit: 10, search: searchTerm },
+                params: { page: 1, limit: 50, search: searchTerm }, // Increased limit to ensure visibility without pagination UI
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (data.success && data.data) {
                 // Map StaffPatient model to display format
+                // API returns { patients: [], total: ... } so we need to access .patients or pass the object to the robust mapper
+                // const patientsList = data.data.patients || data.data; 
                 // Using the robust mapper that handles both array and object responses
                 const mappedPatients = mapStaffPatientsToDisplay(data.data);
                 setPatients(mappedPatients);
@@ -38,36 +40,25 @@ const DigitalHealthCards = () => {
         }
     };
 
-    const filterPatientList = useCallback(() => {
-        let filtered = patients;
+    // Derived state for filtering (Cleanest React Pattern)
+    const getDisplayedPatients = () => {
+        let displayed = patients;
 
-        // Search filter
-        if (searchTerm) {
-            filtered = filtered.filter(p =>
-                p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.cnic?.includes(searchTerm) ||
-                p.healthId?.includes(searchTerm)
-            );
-        }
-
-        // Status filter
+        // Status filter (Local only, as API doesn't support this specific flag yet)
         if (filterStatus === 'with-id') {
-            filtered = filtered.filter(p => p.healthId);
+            displayed = displayed.filter(p => p.healthId);
         } else if (filterStatus === 'without-id') {
-            filtered = filtered.filter(p => !p.healthId);
+            displayed = displayed.filter(p => !p.healthId);
         }
 
-        setFilteredPatients(filtered);
-    }, [patients, searchTerm, filterStatus]);
+        return displayed;
+    };
+
+    const filteredPatients = getDisplayedPatients();
 
     useEffect(() => {
         fetchPatients();
-    }, []);
-
-    useEffect(() => {
-        filterPatientList();
-    }, [filterPatientList]);
+    }, [searchTerm]); // Re-fetch when search changes (Matches PatientList logic)
 
     const handleGenerateHealthId = async (patientId) => {
         try {
