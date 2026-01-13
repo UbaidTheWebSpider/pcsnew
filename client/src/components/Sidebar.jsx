@@ -17,6 +17,7 @@ const Sidebar = () => {
                     { path: '/admin/pharmacists', label: 'Manage Pharmacists', icon: Users },
                     { path: '/admin/patients', label: 'Manage Patients', icon: Users },
                     { path: '/staff/health-cards', label: 'Health Cards', icon: CreditCard },
+                    { path: '/staff/health-id', label: 'Health ID', icon: CreditCard },
                 ];
             case 'doctor':
                 return [
@@ -39,6 +40,7 @@ const Sidebar = () => {
                     { path: '/staff/patients', label: 'Patient List', icon: Users },
                     { path: '/staff/checkin', label: 'Check-In', icon: Calendar },
                     { path: '/staff/health-cards', label: 'Digital Health Cards', icon: CreditCard },
+                    { path: '/staff/health-id', label: 'Health ID', icon: CreditCard },
                 ];
             case 'pharmacy':
                 return [

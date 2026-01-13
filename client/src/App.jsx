@@ -37,6 +37,7 @@ import PatientRegistration from './pages/staff/PatientRegistration';
 import PatientList from './pages/staff/PatientList';
 import PatientCheckIn from './pages/staff/PatientCheckIn';
 import DigitalHealthCards from './pages/staff/DigitalHealthCards';
+import HealthIdScanner from './pages/staff/HealthIdScanner';
 import TelemedicineRoom from './pages/TelemedicineRoom';
 import ProtectedRoute from './components/ProtectedRoute';
 import SuperAdminRoute from './components/SuperAdminRoute';
@@ -96,6 +97,7 @@ function App() {
               <Route path="/staff/patients" element={<PatientList />} />
               <Route path="/staff/checkin" element={<PatientCheckIn />} />
               <Route path="/staff/health-cards" element={<DigitalHealthCards />} />
+              <Route path="/staff/health-id" element={<HealthIdScanner />} />
             </Route>
             {/* Pharmacy Routes */}
             <Route element={<ProtectedRoute allowedRoles={['pharmacy']} />}>
