@@ -90,12 +90,11 @@ supplierSchema.index({ isActive: 1 });
 supplierSchema.index({ 'address.city': 1 });
 
 // Auto-generate supplier code
-supplierSchema.pre('save', async function (next) {
+supplierSchema.pre('save', async function () {
     if (this.isNew && !this.supplierCode) {
         const count = await mongoose.model('Supplier').countDocuments();
         this.supplierCode = `SUP-${String(count + 1).padStart(5, '0')}`;
     }
-    next();
 });
 
 // Virtual: Check if license is expired

@@ -47,72 +47,15 @@ exports.getAllPatients = async (req, res) => {
         const hospitalId = req.user.hospitalId || req.user._id;
         const result = await PatientService.getHospitalPatients(hospitalId, req.query);
 
-        // FAIL-SAFE FALLBACK FOR DEMO
-        const MOCK_PATIENTS = [
-            {
-                _id: 'mock-1',
-                patientId: 'P-2025-001',
-                name: 'Javed Iqbal',
-                personalInfo: { fullName: 'Javed Iqbal', fatherName: 'Muhammad Iqbal', cnic: '42101-1234567-1', gender: 'male', dateOfBirth: '1980-01-01', bloodGroup: 'A+' },
-                contactInfo: { mobileNumber: '0300-1234567', address: 'Karachi' },
-                healthId: 'HID-887766',
-                healthCardQr: JSON.stringify({ id: 'HID-887766', name: 'Javed Iqbal' }),
-                healthCardIssueDate: new Date(),
-                admissionDetails: { department: 'Cardiology' }
-            },
-            {
-                _id: 'mock-2',
-                patientId: 'P-2025-002',
-                name: 'Fatima Noor',
-                personalInfo: { fullName: 'Fatima Noor', fatherName: 'Noor Ahmed', cnic: '42101-7654321-2', gender: 'female', dateOfBirth: '1995-05-15', bloodGroup: 'B+' },
-                contactInfo: { mobileNumber: '0321-9876543', address: 'Lahore' },
-                healthId: 'HID-112233',
-                healthCardQr: JSON.stringify({ id: 'HID-112233', name: 'Fatima Noor' }),
-                healthCardIssueDate: new Date(),
-                admissionDetails: { department: 'Pediatrics' }
-            },
-            {
-                _id: '694578b68328bd6b839101c4',
-                patientId: 'P-2025-ZIA',
-                name: 'Zia',
-                personalInfo: { fullName: 'Zia', gender: 'male', dateOfBirth: '1990-01-01', bloodGroup: 'O+' },
-                contactInfo: { mobileNumber: '0300-0000000', address: 'Unknown' },
-                healthId: 'HID-MKCAEM21-54DC85',
-                healthCardQr: JSON.stringify({ id: 'HID-MKCAEM21-54DC85', name: 'Zia' }),
-                healthCardIssueDate: new Date(),
-            }
-        ];
-
-        let responseData = result.data;
-        let totalCount = result.total;
-
-        // Force fallback if no patients found
-        if (result.data.length === 0) {
-            console.log('No patients found in DB, using MOCK_PATIENTS');
-            responseData = MOCK_PATIENTS;
-            totalCount = MOCK_PATIENTS.length;
-
-            // Simple search filtering for mock data
-            if (req.query.search) {
-                const searchLower = req.query.search.toLowerCase();
-                responseData = MOCK_PATIENTS.filter(p =>
-                    p.name.toLowerCase().includes(searchLower) ||
-                    p.patientId.toLowerCase().includes(searchLower) ||
-                    (p.healthId && p.healthId.toLowerCase().includes(searchLower))
-                );
-                totalCount = responseData.length;
-            }
-        }
-
         res.status(200).json({
             success: true,
-            count: totalCount,
-            data: responseData,
+            count: result.data.length,
+            data: result.data,
             pagination: {
                 page: result.page,
                 limit: req.query.limit || 10,
-                total: totalCount,
-                totalPages: Math.ceil(totalCount / (req.query.limit || 10)) || 1
+                total: result.total,
+                totalPages: result.totalPages
             }
         });
 
