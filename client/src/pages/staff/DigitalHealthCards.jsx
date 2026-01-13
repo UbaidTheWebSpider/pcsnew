@@ -20,15 +20,14 @@ const DigitalHealthCards = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/staff/patients', {
+                params: { page: 1, limit: 10, search: searchTerm },
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (data.success && data.data) {
                 // Map StaffPatient model to display format
-                // Map StaffPatient model to display format
-                // API returns { patients: [], total: ... } so we need to access .patients or pass the object to the robust mapper
-                const patientsList = data.data.patients || data.data;
-                const mappedPatients = mapStaffPatientsToDisplay(patientsList);
+                // Using the robust mapper that handles both array and object responses
+                const mappedPatients = mapStaffPatientsToDisplay(data.data);
                 setPatients(mappedPatients);
             }
         } catch (error) {
