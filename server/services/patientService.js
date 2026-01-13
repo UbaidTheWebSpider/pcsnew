@@ -82,10 +82,26 @@ class PatientService {
         try {
             const { search, department, type, page = 1, limit = 10 } = queryParams;
 
-            let query = { hospitalId, isActive: true };
-
+            // --- 1. Query Unified Patient Collection (Legacy/Admin) ---
+            const patientQuery = { hospitalId, isDeleted: false };
             if (search) {
-                query.$or = [
+                patientQuery.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { cnic: { $regex: search, $options: 'i' } },
+                    { 'contact.phone': { $regex: search, $options: 'i' } },
+                    { patientId: { $regex: search, $options: 'i' } },
+                    { healthId: { $regex: search, $options: 'i' } }
+                ];
+            }
+            if (department) patientQuery['admissionDetails.department'] = department;
+            if (type) patientQuery.patientType = type;
+
+            const legacyPatients = await Patient.find(patientQuery).sort({ createdAt: -1 }).lean();
+
+            // --- 2. Query StaffPatient Collection ---
+            const staffQuery = { hospitalId, isActive: true };
+            if (search) {
+                staffQuery.$or = [
                     { 'personalInfo.fullName': { $regex: search, $options: 'i' } },
                     { 'personalInfo.cnic': { $regex: search, $options: 'i' } },
                     { 'contactInfo.mobileNumber': { $regex: search, $options: 'i' } },
@@ -93,61 +109,86 @@ class PatientService {
                     { healthId: { $regex: search, $options: 'i' } }
                 ];
             }
+            if (department) staffQuery['admissionDetails.department'] = department;
+            if (type) staffQuery['admissionDetails.patientType'] = type;
 
-            if (department) query['admissionDetails.department'] = department;
-            if (type) query['admissionDetails.patientType'] = type;
+            const staffPatients = await StaffPatient.find(staffQuery).sort({ createdAt: -1 }).lean();
 
-            console.log('DEBUG: PatientService query:', JSON.stringify(query, null, 2));
+            // --- 3. Merge and Map ---
+            const mappedLegacy = legacyPatients.map(p => ({
+                _id: p._id,
+                patientId: p.patientId,
+                personalInfo: {
+                    fullName: p.name,
+                    cnic: p.cnic,
+                    gender: p.gender,
+                    dateOfBirth: p.dateOfBirth,
+                    bloodGroup: p.bloodGroup,
+                    photoUrl: p.photoUrl
+                },
+                contactInfo: {
+                    mobileNumber: p.contact?.phone,
+                    email: p.contact?.email,
+                    address: p.contact?.address
+                },
+                admissionDetails: p.admissionDetails,
+                healthId: p.healthId,
+                healthCardQr: p.healthCardQr,
+                healthCardIssueDate: p.healthCardIssueDate,
+                hospitalId: p.hospitalId,
+                createdAt: p.createdAt,
+                userId: p.userId,
+                source: 'Patient'
+            }));
 
-            const skip = (page - 1) * limit;
-            console.log('DEBUG: Skip:', skip, 'Limit:', limit);
+            const mappedStaff = staffPatients.map(p => ({
+                _id: p._id,
+                patientId: p.patientId,
+                personalInfo: p.personalInfo,
+                contactInfo: p.contactInfo,
+                admissionDetails: p.admissionDetails,
+                healthId: p.healthId,
+                healthCardQr: p.healthCardQr,
+                healthCardIssueDate: p.healthCardIssueDate,
+                hospitalId: p.hospitalId,
+                createdAt: p.createdAt,
+                userId: p.userId,
+                source: 'StaffPatient'
+            }));
 
-            const total = await StaffPatient.countDocuments(query);
-            console.log('DEBUG: Total found:', total);
+            const combined = [...mappedLegacy, ...mappedStaff].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            const patients = await StaffPatient.find(query)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit))
-                .populate('admissionDetails.assignedDoctorId', 'name specialization');
+            // --- 4. Populate missing Health IDs from User model ---
+            const userIds = combined.map(p => p.userId).filter(id => id);
+            if (userIds.length > 0) {
+                const users = await User.find({ _id: { $in: userIds } }).select('healthId healthCardQr healthCardIssueDate').lean();
+                const userMap = new Map(users.map(u => [u._id.toString(), u]));
 
-            console.log('DEBUG: Patients retrieved:', patients.length);
+                combined.forEach(p => {
+                    if (p.userId) {
+                        const user = userMap.get(p.userId.toString());
+                        if (user) {
+                            p.healthId = p.healthId || user.healthId;
+                            p.healthCardQr = p.healthCardQr || user.healthCardQr;
+                            p.healthCardIssueDate = p.healthCardIssueDate || user.healthCardIssueDate;
+                        }
+                    }
+                });
+            }
 
-            // Map data to the format expected by the frontend (already in StaffPatient format mostly)
-            const mappedPatients = patients.map(p => {
-                try {
-                    return {
-                        _id: p._id,
-                        patientId: p.patientId,
-                        personalInfo: p.personalInfo,
-                        contactInfo: p.contactInfo,
-                        admissionDetails: p.admissionDetails,
-                        medicalBackground: p.medicalBackground,
-                        healthId: p.healthId,
-                        healthCardQr: p.healthCardQr,
-                        healthCardIssueDate: p.healthCardIssueDate,
-                        hospitalId: p.hospitalId,
-                        createdAt: p.createdAt,
-                        isActive: p.isActive
-                    };
-                } catch (mapErr) {
-                    console.error('ERROR MAPPING PATIENT:', p._id, mapErr);
-                    return null;
-                }
-            }).filter(p => p !== null);
-
-            console.log('DEBUG: Mapped patients count:', mappedPatients.length);
+            const total = combined.length;
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            const paginated = combined.slice(skip, skip + parseInt(limit));
 
             return {
-                data: mappedPatients,
+                data: paginated,
                 total,
                 page: parseInt(page),
-                totalPages: Math.ceil(total / limit)
+                totalPages: Math.ceil(total / (limit || 10))
             };
 
         } catch (error) {
             console.error('CRITICAL DATABASE ERROR IN getHospitalPatients:');
-            console.error('Query was:', JSON.stringify(queryParams));
             console.error('Error Details:', error);
             throw error;
         }
@@ -182,13 +223,20 @@ class PatientService {
                 visitReason: p.admissionDetails?.visitReason,
                 admissionDate: p.admissionDetails?.admissionDate
             },
+            medicalBackground: {
+                allergies: p.allergies,
+                chronicDiseases: p.chronicDiseases,
+                notes: p.notes?.map(n => n.note).join('\n')
+            },
             healthId: p.healthId,
             healthCardQr: p.healthCardQr,
             healthCardIssueDate: p.healthCardIssueDate,
             hospitalId: p.hospitalId,
             createdAt: p.createdAt,
             updatedAt: p.updatedAt,
-            isActive: !p.isDeleted
+            userId: p.userId,
+            isActive: !p.isDeleted,
+            source: 'Patient'
         };
     }
 
@@ -196,11 +244,40 @@ class PatientService {
      * Get Single Patient by ID (Staff Format)
      */
     static async getPatientById(id) {
-        const patient = await Patient.findById(id)
+        // Try Patient model first
+        let patient = await Patient.findById(id)
             .populate('admissionDetails.assignedDoctorId', 'name')
-            .populate('createdBy', 'name');
+            .populate('createdBy', 'name')
+            .lean();
 
-        return this.toStaffFormat(patient);
+        if (patient) {
+            // MERGE: Pull Health ID from User if missing (Same as Admin logic)
+            if (patient.userId) {
+                const user = await User.findById(patient.userId).select('healthId healthCardQr healthCardIssueDate').lean();
+                if (user) {
+                    patient.healthId = patient.healthId || user.healthId;
+                    patient.healthCardQr = patient.healthCardQr || user.healthCardQr;
+                    patient.healthCardIssueDate = patient.healthCardIssueDate || user.healthCardIssueDate;
+                }
+            }
+            return this.toStaffFormat(patient);
+        }
+
+        // Try StaffPatient model
+        patient = await StaffPatient.findById(id)
+            .populate('admissionDetails.assignedDoctorId', 'name')
+            .populate('createdBy', 'name')
+            .lean();
+
+        if (patient) {
+            // StaffPatient already has the correct structure for the most part
+            return {
+                ...patient,
+                source: 'StaffPatient'
+            };
+        }
+
+        return null;
     }
 
     /**

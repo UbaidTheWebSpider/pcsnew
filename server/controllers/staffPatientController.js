@@ -44,14 +44,7 @@ exports.registerPatient = async (req, res) => {
 // @access  Private
 exports.getAllPatients = async (req, res) => {
     try {
-        console.log('DEBUG: req.user:', {
-            id: req.user?._id,
-            role: req.user?.role,
-            hospitalId: req.user?.hospitalId
-        });
-
         const hospitalId = req.user.hospitalId || req.user._id;
-        console.log('DEBUG: Using hospitalId:', hospitalId);
 
         const result = await PatientService.getHospitalPatients(hospitalId, req.query);
 
