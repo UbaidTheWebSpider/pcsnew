@@ -8,9 +8,9 @@ import { mapStaffPatientsToDisplay } from '../../utils/patientMapper';
 
 const DigitalHealthCards = () => {
     const [patients, setPatients] = useState([]);
-    // const [filteredPatients, setFilteredPatients] = useState([]); // REMOVED: Using direct state management like PatientList
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1); // Added to match PatientList
     const [filterStatus, setFilterStatus] = useState('all'); // all, with-id, without-id
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [viewerOpen, setViewerOpen] = useState(false);
@@ -18,19 +18,23 @@ const DigitalHealthCards = () => {
     const fetchPatients = async () => {
         try {
             setLoading(true);
+            console.log('Fetching patients for Health Cards...'); // Debug
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/staff/patients', {
-                params: { page: 1, limit: 50, search: searchTerm }, // Increased limit to ensure visibility without pagination UI
+                params: { page: currentPage, limit: 10, search: searchTerm }, // Match PatientList params exactly
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            console.log('Health Cards Response:', data); // Debug
+
             if (data.success && data.data) {
-                // Map StaffPatient model to display format
-                // API returns { patients: [], total: ... } so we need to access .patients or pass the object to the robust mapper
-                // const patientsList = data.data.patients || data.data; 
                 // Using the robust mapper that handles both array and object responses
                 const mappedPatients = mapStaffPatientsToDisplay(data.data);
+                console.log('Mapped Patients:', mappedPatients); // Debug
                 setPatients(mappedPatients);
+            } else {
+                console.warn('Unexpected response structure in Health Cards:', data);
+                setPatients([]);
             }
         } catch (error) {
             console.error('Error fetching patients:', error);
@@ -58,7 +62,7 @@ const DigitalHealthCards = () => {
 
     useEffect(() => {
         fetchPatients();
-    }, [searchTerm]); // Re-fetch when search changes (Matches PatientList logic)
+    }, [currentPage, searchTerm]); // Match PatientList dependencies
 
     const handleGenerateHealthId = async (patientId) => {
         try {
