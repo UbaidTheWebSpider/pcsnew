@@ -25,7 +25,10 @@ const DigitalHealthCards = () => {
 
             if (data.success && data.data) {
                 // Map StaffPatient model to display format
-                const mappedPatients = mapStaffPatientsToDisplay(data.data);
+                // Map StaffPatient model to display format
+                // API returns { patients: [], total: ... } so we need to access .patients or pass the object to the robust mapper
+                const patientsList = data.data.patients || data.data;
+                const mappedPatients = mapStaffPatientsToDisplay(patientsList);
                 setPatients(mappedPatients);
             }
         } catch (error) {

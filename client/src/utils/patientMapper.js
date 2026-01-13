@@ -53,6 +53,11 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
  * @returns {Array} Array of mapped patient objects
  */
 export const mapStaffPatientsToDisplay = (staffPatients) => {
+    // Handle paginated response structure { patients: [], total: ... }
+    if (staffPatients && staffPatients.patients && Array.isArray(staffPatients.patients)) {
+        return staffPatients.patients.map(mapStaffPatientToDisplay);
+    }
+
     if (!Array.isArray(staffPatients)) return [];
     return staffPatients.map(mapStaffPatientToDisplay);
 };
