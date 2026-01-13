@@ -3,6 +3,7 @@ const Doctor = require('../models/User'); // Assuming Doctor is a User with role
 const Admission = require('../models/Admission');
 const Bed = require('../models/Bed');
 const User = require('../models/User'); // Ensure User model is available
+const StaffPatient = require('../models/StaffPatient');
 
 // @desc    Get dashboard stats
 // @route   GET /api/staff/dashboard
@@ -143,7 +144,6 @@ const getPatients = async (req, res) => {
             .lean();
 
         // Fetch from new StaffPatient collection
-        const StaffPatient = require('../models/StaffPatient');
         const staffQuery = { hospitalId: req.user.hospitalId };
 
         if (search) {
@@ -193,7 +193,11 @@ const getPatients = async (req, res) => {
 
         // MERGE LOGIC (Fixes Health ID visibility for Staff)
         const userIds = paginatedPatients.map(p => p.userId).filter(id => id);
-        const users = await User.find({ _id: { $in: userIds } }).select('healthId healthCardQr healthCardIssueDate photoUrl cnic contact gender dateOfBirth').lean();
+
+        let users = [];
+        if (userIds.length > 0) {
+            users = await User.find({ _id: { $in: userIds } }).select('healthId healthCardQr healthCardIssueDate photoUrl cnic contact gender dateOfBirth').lean();
+        }
 
         const userMap = new Map();
         users.forEach(u => userMap.set(u._id.toString(), u));
@@ -226,7 +230,12 @@ const getPatients = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getPatients:', error);
-        res.status(500).json({ message: error.message });
+        // Return full error details for debugging
+        res.status(500).json({
+            message: error.message,
+            stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
+            details: 'Error occurred in logic inside getPatients'
+        });
     }
 };
 
