@@ -13,25 +13,25 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
     return {
         _id: staffPatient._id,
         patientId: staffPatient.patientId,
-        name: staffPatient.personalInfo?.fullName || 'N/A',
-        cnic: staffPatient.personalInfo?.cnic || 'N/A',
-        gender: staffPatient.personalInfo?.gender || 'N/A',
-        dateOfBirth: staffPatient.personalInfo?.dateOfBirth,
-        bloodGroup: staffPatient.personalInfo?.bloodGroup,
-        photoUrl: staffPatient.personalInfo?.photoUrl || null,
-        age: staffPatient.personalInfo?.dateOfBirth
-            ? calculateAge(staffPatient.personalInfo.dateOfBirth)
+        name: staffPatient.name || staffPatient.personalInfo?.fullName || 'N/A',
+        cnic: staffPatient.cnic || staffPatient.personalInfo?.cnic || 'N/A',
+        gender: staffPatient.gender || staffPatient.personalInfo?.gender || 'N/A',
+        dateOfBirth: staffPatient.dateOfBirth || staffPatient.personalInfo?.dateOfBirth,
+        bloodGroup: staffPatient.bloodGroup || staffPatient.personalInfo?.bloodGroup,
+        photoUrl: staffPatient.photoUrl || staffPatient.personalInfo?.photoUrl || null,
+        age: (staffPatient.dateOfBirth || staffPatient.personalInfo?.dateOfBirth)
+            ? calculateAge(staffPatient.dateOfBirth || staffPatient.personalInfo?.dateOfBirth)
             : null,
-        email: staffPatient.contactInfo?.email || 'N/A',
+        email: staffPatient.contact?.email || staffPatient.contactInfo?.email || 'N/A',
         contact: {
-            phone: staffPatient.contactInfo?.mobileNumber || 'N/A',
-            address: staffPatient.contactInfo?.address || 'N/A',
-            email: staffPatient.contactInfo?.email || 'N/A'
+            phone: staffPatient.contact?.phone || staffPatient.contactInfo?.mobileNumber || 'N/A',
+            address: staffPatient.contact?.address || staffPatient.contactInfo?.address || 'N/A',
+            email: staffPatient.contact?.email || staffPatient.contactInfo?.email || 'N/A'
         },
         emergencyContact: {
-            name: staffPatient.contactInfo?.emergencyContact?.name || 'N/A',
-            phone: staffPatient.contactInfo?.emergencyContact?.phone || 'N/A',
-            relation: staffPatient.contactInfo?.emergencyContact?.relation || 'N/A'
+            name: staffPatient.emergencyContact?.name || staffPatient.contactInfo?.emergencyContact?.name || 'N/A',
+            phone: staffPatient.emergencyContact?.phone || staffPatient.contactInfo?.emergencyContact?.phone || 'N/A',
+            relation: staffPatient.emergencyContact?.relation || staffPatient.contactInfo?.emergencyContact?.relation || 'N/A'
         },
         // Health Card Fields
         healthId: staffPatient.healthId || null,
@@ -40,7 +40,7 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
         // Other fields
         admissionDetails: staffPatient.admissionDetails,
         medicalBackground: staffPatient.medicalBackground,
-        medicalInfo: staffPatient.medicalBackground, // Alias for compatibility
+        medicalInfo: staffPatient.medicalInfo || staffPatient.medicalBackground, // Alias for compatibility
         isActive: staffPatient.isActive,
         createdAt: staffPatient.createdAt,
         updatedAt: staffPatient.updatedAt
