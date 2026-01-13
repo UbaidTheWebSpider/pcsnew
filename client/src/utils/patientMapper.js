@@ -14,6 +14,7 @@ export const mapStaffPatientToDisplay = (staffPatient) => {
         _id: staffPatient._id,
         patientId: staffPatient.patientId,
         name: staffPatient.name || staffPatient.personalInfo?.fullName || 'N/A',
+        fatherName: staffPatient.fatherName || staffPatient.personalInfo?.fatherName || '',
         cnic: staffPatient.cnic || staffPatient.personalInfo?.cnic || 'N/A',
         gender: staffPatient.gender || staffPatient.personalInfo?.gender || 'N/A',
         dateOfBirth: staffPatient.dateOfBirth || staffPatient.personalInfo?.dateOfBirth,
