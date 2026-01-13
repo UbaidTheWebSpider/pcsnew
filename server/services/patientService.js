@@ -87,7 +87,8 @@ class PatientService {
                 { name: { $regex: search, $options: 'i' } },
                 { cnic: { $regex: search, $options: 'i' } },
                 { 'contact.phone': { $regex: search, $options: 'i' } },
-                { patientId: { $regex: search, $options: 'i' } }
+                { patientId: { $regex: search, $options: 'i' } },
+                { healthId: { $regex: search, $options: 'i' } }
             ];
         }
 
