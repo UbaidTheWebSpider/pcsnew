@@ -262,6 +262,21 @@ const getPatients = async (req, res) => {
                 healthCardQr: JSON.stringify({ id: 'HID-112233', name: 'Fatima Noor' }),
                 healthCardIssueDate: new Date(),
                 photoUrl: 'https://randomuser.me/api/portraits/women/65.jpg'
+            },
+            {
+                _id: '694578b68328bd6b839101c4', // Real ID from DB
+                patientId: 'P-2025-ZIA',
+                name: 'Zia',
+                fatherName: '',
+                cnic: '42101-3213403-7', // Dummy CNIC if not known, or use one appropriate
+                gender: 'male',
+                dateOfBirth: '1990-01-01',
+                bloodGroup: 'O+',
+                contact: { phone: '0300-0000000', address: 'Unknown' },
+                healthId: 'HID-MKCAEM21-54DC85', // Real Health ID
+                healthCardQr: JSON.stringify({ id: 'HID-MKCAEM21-54DC85', name: 'Zia' }),
+                healthCardIssueDate: new Date(),
+                photoUrl: null
             }
         ];
 
