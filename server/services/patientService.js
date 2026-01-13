@@ -81,20 +81,20 @@ class PatientService {
     static async getHospitalPatients(hospitalId, queryParams) {
         const { search, department, type, page = 1, limit = 10 } = queryParams;
 
-        let query = { hospitalId, isDeleted: false };
+        let query = { hospitalId, isActive: true };
 
         if (search) {
             query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { cnic: { $regex: search, $options: 'i' } },
-                { 'contact.phone': { $regex: search, $options: 'i' } },
+                { 'personalInfo.fullName': { $regex: search, $options: 'i' } },
+                { 'personalInfo.cnic': { $regex: search, $options: 'i' } },
+                { 'contactInfo.mobileNumber': { $regex: search, $options: 'i' } },
                 { patientId: { $regex: search, $options: 'i' } },
                 { healthId: { $regex: search, $options: 'i' } }
             ];
         }
 
         if (department) query['admissionDetails.department'] = department;
-        if (type) query.patientType = type;
+        if (type) query['admissionDetails.patientType'] = type;
 
         const skip = (page - 1) * limit;
         const total = await StaffPatient.countDocuments(query);
@@ -104,35 +104,20 @@ class PatientService {
             .limit(parseInt(limit))
             .populate('admissionDetails.assignedDoctorId', 'name specialization');
 
-        // Map back to Staff Format
+        // Map data to the format expected by the frontend (already in StaffPatient format mostly)
         const mappedPatients = patients.map(p => ({
             _id: p._id,
             patientId: p.patientId,
-            personalInfo: {
-                fullName: p.name,
-                cnic: p.cnic,
-                gender: p.gender,
-                dateOfBirth: p.dateOfBirth,
-                bloodGroup: p.bloodGroup,
-                photoUrl: p.photoUrl
-            },
-            contactInfo: {
-                mobileNumber: p.contact?.phone,
-                email: p.contact?.email,
-                address: p.contact?.address,
-                emergencyContact: p.emergencyContact
-            },
-            admissionDetails: {
-                patientType: p.patientType,
-                department: p.admissionDetails?.department,
-                assignedDoctorId: p.admissionDetails?.assignedDoctorId,
-                visitReason: p.admissionDetails?.visitReason,
-                admissionDate: p.admissionDetails?.admissionDate
-            },
+            personalInfo: p.personalInfo,
+            contactInfo: p.contactInfo,
+            admissionDetails: p.admissionDetails,
+            medicalBackground: p.medicalBackground,
             healthId: p.healthId,
+            healthCardQr: p.healthCardQr,
+            healthCardIssueDate: p.healthCardIssueDate,
             hospitalId: p.hospitalId,
             createdAt: p.createdAt,
-            isActive: !p.isDeleted
+            isActive: p.isActive
         }));
 
         return {
