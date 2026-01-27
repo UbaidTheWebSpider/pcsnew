@@ -21,7 +21,7 @@ const DigitalHealthCards = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             const { data } = await axiosInstance.get('/api/staff/patients', {
-                params: { page: currentPage, limit: 12, search: searchTerm },
+                params: { page: currentPage, limit: 5, search: searchTerm },
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -221,8 +221,8 @@ const DigitalHealthCards = () => {
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
                                                         className={`w-12 h-12 rounded-xl text-sm font-black transition-all ${currentPage === pageNum
-                                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                                                : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
+                                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                                            : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
                                                             }`}
                                                     >
                                                         {pageNum}
