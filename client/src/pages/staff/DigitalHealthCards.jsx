@@ -96,7 +96,7 @@ const DigitalHealthCards = () => {
                 <div className="max-w-7xl mx-auto mb-10">
                     <div className="relative overflow-hidden bg-white rounded-3xl shadow-sm border border-slate-200/60 p-8">
                         {/* Decorative Background Elements */}
-                        <div className="absolute top-0 right-0 -trall-y-1/2 translate-x-1/2 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
+                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
                         <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
