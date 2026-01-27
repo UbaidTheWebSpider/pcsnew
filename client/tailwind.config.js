@@ -8,15 +8,15 @@ export default {
     theme: {
         extend: {
             fontSize: {
-                'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],
-                'sm': ['clamp(0.875rem, 0.8rem + 0.375vw, 1rem)', { lineHeight: '1.5' }],
-                'base': ['clamp(0.875rem, 0.85rem + 0.25vw, 1rem)', { lineHeight: '1.6' }],
-                'lg': ['clamp(1rem, 0.95rem + 0.25vw, 1.125rem)', { lineHeight: '1.6' }],
-                'xl': ['clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem)', { lineHeight: '1.5' }],
-                '2xl': ['clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem)', { lineHeight: '1.4' }],
-                '3xl': ['clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem)', { lineHeight: '1.3' }],
-                '4xl': ['clamp(1.875rem, 1.65rem + 1.125vw, 2.25rem)', { lineHeight: '1.2' }],
-                '5xl': ['clamp(2.25rem, 1.95rem + 1.5vw, 3rem)', { lineHeight: '1.1' }],
+                'xs': ['0.625rem', { lineHeight: '1.5' }],    /* 10px */
+                'sm': ['0.625rem', { lineHeight: '1.5' }],    /* 10px */
+                'base': ['0.6875rem', { lineHeight: '1.5' }], /* 11px */
+                'lg': ['0.6875rem', { lineHeight: '1.5' }],   /* 11px */
+                'xl': ['0.75rem', { lineHeight: '1.5' }],     /* 12px */
+                '2xl': ['0.8125rem', { lineHeight: '1.4' }],  /* 13px */
+                '3xl': ['0.875rem', { lineHeight: '1.3' }],   /* 14px */
+                '4xl': ['0.9375rem', { lineHeight: '1.2' }],  /* 15px */
+                '5xl': ['1rem', { lineHeight: '1.1' }],       /* 16px */
             },
             spacing: {
                 'icon-xs': 'var(--icon-size-xs)',
