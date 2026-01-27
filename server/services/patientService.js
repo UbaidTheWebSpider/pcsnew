@@ -244,40 +244,59 @@ class PatientService {
      * Get Single Patient by ID (Staff Format)
      */
     static async getPatientById(id) {
-        // Try Patient model first
-        let patient = await Patient.findById(id)
-            .populate('admissionDetails.assignedDoctorId', 'name')
-            .populate('createdBy', 'name')
-            .lean();
+        try {
+            // Try Patient model first
+            let patient = await Patient.findById(id).lean();
 
-        if (patient) {
-            // MERGE: Pull Health ID from User if missing (Same as Admin logic)
-            if (patient.userId) {
-                const user = await User.findById(patient.userId).select('healthId healthCardQr healthCardIssueDate').lean();
-                if (user) {
-                    patient.healthId = patient.healthId || user.healthId;
-                    patient.healthCardQr = patient.healthCardQr || user.healthCardQr;
-                    patient.healthCardIssueDate = patient.healthCardIssueDate || user.healthCardIssueDate;
+            if (patient) {
+                // Manually handle populations to be safe
+                if (patient.admissionDetails?.assignedDoctorId) {
+                    const doctor = await User.findById(patient.admissionDetails.assignedDoctorId).select('name').lean();
+                    patient.admissionDetails.assignedDoctorId = doctor || { name: 'Unknown' };
                 }
+                if (patient.createdBy) {
+                    const creator = await User.findById(patient.createdBy).select('name').lean();
+                    patient.createdBy = creator || { name: 'Unknown' };
+                }
+
+                // MERGE: Pull Health ID from User if missing (Same as Admin logic)
+                if (patient.userId) {
+                    const user = await User.findById(patient.userId).select('healthId healthCardQr healthCardIssueDate').lean();
+                    if (user) {
+                        patient.healthId = patient.healthId || user.healthId;
+                        patient.healthCardQr = patient.healthCardQr || user.healthCardQr;
+                        patient.healthCardIssueDate = patient.healthCardIssueDate || user.healthCardIssueDate;
+                    }
+                }
+                return this.toStaffFormat(patient);
             }
-            return this.toStaffFormat(patient);
+
+            // Try StaffPatient model
+            patient = await StaffPatient.findById(id).lean();
+
+            if (patient) {
+                // Manually handle populations to be safe
+                if (patient.admissionDetails?.assignedDoctorId) {
+                    const doctor = await User.findById(patient.admissionDetails.assignedDoctorId).select('name').lean();
+                    patient.admissionDetails.assignedDoctorId = doctor || { name: 'Unknown' };
+                }
+                if (patient.createdBy) {
+                    const creator = await User.findById(patient.createdBy).select('name').lean();
+                    patient.createdBy = creator || { name: 'Unknown' };
+                }
+
+                // StaffPatient already has the correct structure for the most part
+                return {
+                    ...patient,
+                    source: 'StaffPatient'
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.error(`Error in getPatientById:`, error);
+            throw error;
         }
-
-        // Try StaffPatient model
-        patient = await StaffPatient.findById(id)
-            .populate('admissionDetails.assignedDoctorId', 'name')
-            .populate('createdBy', 'name')
-            .lean();
-
-        if (patient) {
-            // StaffPatient already has the correct structure for the most part
-            return {
-                ...patient,
-                source: 'StaffPatient'
-            };
-        }
-
-        return null;
     }
 
     /**
@@ -324,7 +343,16 @@ class PatientService {
      */
     static async generateHealthId(id) {
         const crypto = require('crypto');
-        const patient = await Patient.findById(id);
+
+        // 1. Try to find patient in Patient collection first
+        let patient = await Patient.findById(id);
+        let Model = Patient;
+
+        // 2. If not found, try StaffPatient collection
+        if (!patient) {
+            patient = await StaffPatient.findById(id);
+            Model = StaffPatient;
+        }
 
         if (!patient) throw new Error('Patient not found');
         if (patient.healthId) throw new Error('Health ID already exists');
@@ -337,14 +365,16 @@ class PatientService {
         const qrData = JSON.stringify({
             hid: healthId,
             pid: patient.patientId,
-            name: patient.name,
+            name: Model === Patient ? patient.name : (patient.personalInfo?.fullName || 'Unknown'),
             issued: new Date().toISOString()
         });
 
-        patient.healthId = healthId;
-        patient.healthCardQr = qrData;
-        patient.healthCardIssueDate = new Date();
-        await patient.save();
+        // Update the record in the appropriate collection
+        await Model.findByIdAndUpdate(id, {
+            healthId,
+            healthCardQr: qrData,
+            healthCardIssueDate: new Date()
+        }, { new: true });
 
         return { healthId, qrCode: qrData };
     }
