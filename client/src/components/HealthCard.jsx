@@ -153,7 +153,7 @@ const HealthCard = ({ patient }) => {
                                 <ShieldCheck size={28} />
                             </div>
                             <div>
-                                <h3 className="font-extrabold text-2xl tracking-wide">HEALTH PASS</h3>
+                                <h3 className="font-bold text-2xl tracking-wide">HEALTH PASS</h3>
                                 <p className="text-[10px] text-blue-200 uppercase tracking-[0.25em] font-semibold">Universal Digital ID</p>
                             </div>
                         </div>
@@ -166,8 +166,8 @@ const HealthCard = ({ patient }) => {
                     <div className="flex gap-6">
                         <div className="flex-1">
                             <div className="mb-5">
-                                <p className="text-[10px] text-blue-300 uppercase tracking-widest font-bold mb-1">Patient Name</p>
-                                <p className="font-bold text-2xl truncate">{patient.name}</p>
+                                <p className="text-[10px] text-blue-300 uppercase tracking-widest font-semibold mb-1">Patient Name</p>
+                                <p className="font-semibold text-2xl truncate">{patient.name}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-y-3 gap-x-1">
@@ -179,7 +179,7 @@ const HealthCard = ({ patient }) => {
                                     <p className="text-[10px] text-blue-300 uppercase tracking-widest mb-0.5">Blood</p>
                                     <div className="flex items-center gap-1.5">
                                         <Droplet size={10} className="text-rose-400 fill-rose-400" />
-                                        <p className="font-bold text-sm">{patient.bloodGroup || 'N/A'}</p>
+                                        <p className="font-semibold text-sm">{patient.bloodGroup || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div className="col-span-2">
@@ -206,7 +206,7 @@ const HealthCard = ({ patient }) => {
                     <div className="pt-3 border-t border-white/10 flex justify-between items-end">
                         <div>
                             <p className="text-[9px] text-blue-300 uppercase tracking-widest mb-0.5">Health ID</p>
-                            <p className="font-mono text-xl font-black tracking-widest text-amber-300">{patient.healthId}</p>
+                            <p className="font-mono text-xl font-bold tracking-widest text-amber-300">{patient.healthId}</p>
                         </div>
                         <div className="bg-white/95 px-2 py-1.5 rounded-lg">
                             <Barcode value={patient.healthId} width={1.2} height={25} format="CODE128" displayValue={false} background="transparent" margin={0} />

@@ -105,7 +105,7 @@ const DigitalHealthCards = () => {
                                     <CreditCard className="text-white group-hover:rotate-12 transition-transform duration-300" size={36} />
                                 </div>
                                 <div>
-                                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Digital Health Cards</h1>
+                                    <h1 className="text-4xl font-bold text-slate-900 tracking-tight">DigitalHealthCards</h1>
                                     <p className="text-slate-500 font-medium mt-1.5 flex items-center gap-2">
                                         <Sparkles className="text-amber-400" size={16} />
                                         Advanced Patient Identification Management
@@ -115,12 +115,12 @@ const DigitalHealthCards = () => {
 
                             <div className="flex items-center gap-4 bg-slate-50/80 backdrop-blur-sm p-4 rounded-2xl border border-slate-100">
                                 <div className="px-6 border-r border-slate-200 text-center">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total</p>
-                                    <p className="text-2xl font-black text-indigo-700 font-mono">{patients.length}</p>
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total</p>
+                                    <p className="text-2xl font-bold text-indigo-700 font-mono">{patients.length}</p>
                                 </div>
                                 <div className="px-6 text-center">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active IDs</p>
-                                    <p className="text-2xl font-black text-emerald-600 font-mono">
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Active IDs</p>
+                                    <p className="text-2xl font-bold text-emerald-600 font-mono">
                                         {patients.filter(p => p.healthId).length}
                                     </p>
                                 </div>
@@ -146,7 +146,7 @@ const DigitalHealthCards = () => {
                                 <select
                                     value={filterStatus}
                                     onChange={(e) => setFilterStatus(e.target.value)}
-                                    className="px-8 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 bg-white transition-all outline-none text-slate-700 font-bold appearance-none cursor-pointer"
+                                    className="px-8 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 bg-white transition-all outline-none text-slate-700 font-semibold appearance-none cursor-pointer"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="with-id">Issued IDs</option>
@@ -174,11 +174,11 @@ const DigitalHealthCards = () => {
                             <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <User className="text-slate-200" size={48} />
                             </div>
-                            <h3 className="text-2xl font-black text-slate-800 mb-2">No Records Found</h3>
+                            <h3 className="text-2xl font-bold text-slate-800 mb-2">No Records Found</h3>
                             <p className="text-slate-500 font-medium max-w-sm mx-auto">We couldn't find any patients matching your current search or status filter.</p>
                             <button
                                 onClick={() => { setSearchTerm(''); setFilterStatus('all'); }}
-                                className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                                className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors"
                             >
                                 Reset Search
                             </button>
@@ -220,7 +220,7 @@ const DigitalHealthCards = () => {
                                                     <button
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
-                                                        className={`w-12 h-12 rounded-xl text-sm font-black transition-all ${currentPage === pageNum
+                                                        className={`w-12 h-12 rounded-xl text-sm font-bold transition-all ${currentPage === pageNum
                                                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
                                                             : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
                                                             }`}
@@ -232,7 +232,7 @@ const DigitalHealthCards = () => {
                                                 pageNum === currentPage - 2 ||
                                                 pageNum === currentPage + 2
                                             ) {
-                                                return <span key={pageNum} className="px-2 text-slate-300 font-black">•••</span>;
+                                                return <span key={pageNum} className="px-2 text-slate-300 font-bold">•••</span>;
                                             }
                                             return null;
                                         })}
@@ -296,7 +296,7 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                         )}
                     </div>
 
-                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${hasHealthId ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
+                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${hasHealthId ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
                         }`}>
                         {hasHealthId ? 'Issued' : 'Pending'}
                     </div>
@@ -304,13 +304,13 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
 
                 {/* Identity Information */}
                 <div className="mb-6">
-                    <h3 className="text-xl font-black text-slate-800 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors duration-300">
+                    <h3 className="text-xl font-bold text-slate-800 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors duration-300">
                         {patient.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[11px] font-extrabold px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider uppercase">{patient.gender || 'N/A'}</span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider">{patient.gender || 'N/A'}</span>
                         <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{patient.age || '??'} Years</span>
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-tighter">{patient.age || '??'} Years</span>
                     </div>
                 </div>
 
@@ -321,8 +321,8 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                             <Mail size={14} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Communication</p>
-                            <p className="text-sm font-bold text-slate-600 truncate">{patient.email || 'No email registered'}</p>
+                            <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-widest mb-0.5">Communication</p>
+                            <p className="text-sm font-semibold text-slate-600 truncate">{patient.email || 'No email registered'}</p>
                         </div>
                     </div>
 
@@ -331,23 +331,23 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                             <Hash size={14} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Government ID</p>
-                            <p className="text-sm font-bold font-mono text-slate-600">{patient.cnic || 'Pending Verification'}</p>
+                            <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-widest mb-0.5">Government ID</p>
+                            <p className="text-sm font-semibold font-mono text-slate-600">{patient.cnic || 'Pending Verification'}</p>
                         </div>
                     </div>
 
                     {hasHealthId ? (
                         <div className="p-4 bg-gradient-to-br from-indigo-600/5 to-blue-600/5 rounded-2xl border border-indigo-100/50">
                             <div className="flex items-center justify-between mb-1.5">
-                                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Health Network ID</p>
+                                <p className="text-[10px] font-semibold text-indigo-400 uppercase tracking-widest">Health Network ID</p>
                                 <Sparkles size={12} className="text-amber-400" />
                             </div>
-                            <p className="text-md font-black text-indigo-600 font-mono tracking-tighter">{patient.healthId}</p>
+                            <p className="text-md font-bold text-indigo-600 font-mono tracking-tighter">{patient.healthId}</p>
                         </div>
                     ) : (
                         <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Queue Status</p>
-                            <p className="text-xs font-bold text-slate-400 italic">Eligibility check pending...</p>
+                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Queue Status</p>
+                            <p className="text-xs font-semibold text-slate-400 italic">Eligibility check pending...</p>
                         </div>
                     )}
                 </div>
@@ -357,7 +357,7 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                     {hasHealthId ? (
                         <button
                             onClick={onViewCard}
-                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 border-2 border-slate-900 text-white rounded-2xl font-black text-sm tracking-wide hover:bg-white hover:text-slate-900 transition-all duration-300 transform active:scale-[0.98]"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 border-2 border-slate-900 text-white rounded-2xl font-bold text-sm tracking-wide hover:bg-white hover:text-slate-900 transition-all duration-300 transform active:scale-[0.98]"
                         >
                             <Download size={20} className="transition-transform group-hover:-translate-y-0.5" />
                             Export Card
@@ -365,7 +365,7 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                     ) : (
                         <button
                             onClick={onGenerateId}
-                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black text-sm tracking-wide hover:bg-indigo-600 hover:text-white transition-all duration-300 transform active:scale-[0.98] shadow-sm hover:shadow-xl hover:shadow-indigo-200"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-bold text-sm tracking-wide hover:bg-indigo-600 hover:text-white transition-all duration-300 transform active:scale-[0.98] shadow-sm hover:shadow-xl hover:shadow-indigo-200"
                         >
                             <Sparkles size={20} className="transition-transform group-hover:rotate-12" />
                             Provision Identity

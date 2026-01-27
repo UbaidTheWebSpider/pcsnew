@@ -256,7 +256,7 @@ const ManagePharmacists = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {/* Personal Info */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider">Personal Information</h3>
+                                        <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Personal Information</h3>
                                         <input type="text" placeholder="Full Name *" className="input-field" required
                                             value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
                                         <div className="grid grid-cols-2 gap-3">
@@ -276,7 +276,7 @@ const ManagePharmacists = () => {
 
                                     {/* Professional Details */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider">Professional Details</h3>
+                                        <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Professional Details</h3>
                                         <input type="text" placeholder="Registration Number *" className="input-field" required
                                             value={formData.professionalDetails.registrationNumber} onChange={e => setFormData({ ...formData, professionalDetails: { ...formData.professionalDetails, registrationNumber: e.target.value } })} />
                                         <div className="grid grid-cols-2 gap-3">
@@ -290,7 +290,7 @@ const ManagePharmacists = () => {
                                                 value={formData.professionalDetails.yearsOfExperience} onChange={e => setFormData({ ...formData, professionalDetails: { ...formData.professionalDetails, yearsOfExperience: e.target.value } })} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">License Expiry *</label>
+                                            <label className="text-[10px] font-semibold text-gray-400 uppercase ml-1">License Expiry *</label>
                                             <input type="date" className="input-field" required
                                                 value={formData.professionalDetails.licenseExpiryDate} onChange={e => setFormData({ ...formData, professionalDetails: { ...formData.professionalDetails, licenseExpiryDate: e.target.value } })} />
                                         </div>
@@ -300,7 +300,7 @@ const ManagePharmacists = () => {
 
                                     {/* Work Assignment */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider">Work Assignment</h3>
+                                        <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Work Assignment</h3>
                                         <select className="input-field" value={formData.assignment.assignedPharmacy} onChange={e => setFormData({ ...formData, assignment: { ...formData.assignment, assignedPharmacy: e.target.value } })}>
                                             <option value="">Select Pharmacy</option>
                                             {pharmacies.map(p => (
@@ -384,12 +384,12 @@ const ManagePharmacists = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">ID</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Pharmacist</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Professional</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Assignment</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">ID</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Pharmacist</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Professional</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Assignment</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -411,46 +411,46 @@ const ManagePharmacists = () => {
                                         pharmacists.map((pharmacist) => (
                                             <tr key={pharmacist._id} className="hover:bg-gray-50 transition-all group">
                                                 <td className="p-4">
-                                                    <span className="font-mono text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 uppercase">
+                                                    <span className="font-mono text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 uppercase">
                                                         {pharmacist.pharmacistId}
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs uppercase">
+                                                        <div className="w-9 h-9 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-semibold text-xs uppercase">
                                                             {pharmacist.fullName?.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <div className="text-sm font-bold text-gray-900 leading-tight">{pharmacist.fullName}</div>
-                                                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{pharmacist.contact?.email}</div>
+                                                            <div className="text-sm font-semibold text-gray-900 leading-tight">{pharmacist.fullName}</div>
+                                                            <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-tight">{pharmacist.contact?.email}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="space-y-1">
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-600 uppercase">
+                                                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-600 uppercase">
                                                             <GraduationCap size={12} className="text-blue-500" />
                                                             {pharmacist.professionalDetails?.qualification}
                                                         </div>
-                                                        <div className="text-[9px] text-gray-400 font-bold uppercase">
+                                                        <div className="text-[9px] text-gray-400 font-semibold uppercase">
                                                             Reg: {pharmacist.professionalDetails?.registrationNumber}
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="space-y-1">
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-700 uppercase">
+                                                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-700 uppercase">
                                                             <Briefcase size={12} className="text-indigo-500" />
                                                             {pharmacist.assignment?.assignedPharmacy?.basicProfile?.pharmacyName || 'Unassigned'}
                                                         </div>
-                                                        <div className="flex items-center gap-3 text-[9px] text-gray-400 font-bold uppercase">
+                                                        <div className="flex items-center gap-3 text-[9px] text-gray-400 font-semibold uppercase">
                                                             <span className="flex items-center gap-1"><Clock size={10} /> {pharmacist.assignment?.shift}</span>
                                                             <span className="bg-gray-100 px-1 rounded">{pharmacist.assignment?.employmentType}</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${pharmacist.assignment?.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${pharmacist.assignment?.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
                                                         pharmacist.assignment?.status === 'Inactive' ? 'bg-gray-100 text-gray-600' :
                                                             'bg-red-50 text-red-600'
                                                         }`}>
@@ -529,13 +529,13 @@ const ManagePharmacists = () => {
                             </button>
                             <div className="flex items-end gap-6 h-full translate-y-12">
                                 <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-lg border-4 border-white">
-                                    <div className="w-full h-full rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-3xl uppercase">
+                                    <div className="w-full h-full rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-3xl uppercase">
                                         {viewingPharmacist.fullName?.charAt(0)}
                                     </div>
                                 </div>
                                 <div className="mb-2">
-                                    <div className="text-2xl font-black text-white drop-shadow-sm">{viewingPharmacist.fullName}</div>
-                                    <div className="flex items-center gap-2 text-white/90 font-bold text-xs uppercase tracking-widest mt-1">
+                                    <div className="text-2xl font-bold text-white drop-shadow-sm">{viewingPharmacist.fullName}</div>
+                                    <div className="flex items-center gap-2 text-white/90 font-semibold text-xs uppercase tracking-widest mt-1">
                                         <span className="bg-white/20 px-2 py-0.5 rounded uppercase">{viewingPharmacist.pharmacistId}</span>
                                         <span>•</span>
                                         <span>{viewingPharmacist.professionalDetails?.qualification}</span>
@@ -549,48 +549,48 @@ const ManagePharmacists = () => {
                             {/* Left Column: Professional */}
                             <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <GraduationCap size={14} /> Professional Details
                                     </h4>
                                     <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500 font-medium">Registration No:</span>
-                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.registrationNumber}</span>
+                                            <span className="text-gray-900 font-bold">{viewingPharmacist.professionalDetails?.registrationNumber}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500 font-medium">Experience:</span>
-                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.yearsOfExperience} Years</span>
+                                            <span className="text-gray-900 font-bold">{viewingPharmacist.professionalDetails?.yearsOfExperience} Years</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500 font-medium">License Expiry:</span>
-                                            <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.licenseExpiryDate ? new Date(viewingPharmacist.professionalDetails.licenseExpiryDate).toLocaleDateString() : 'N/A'}</span>
+                                            <span className="text-gray-900 font-bold">{viewingPharmacist.professionalDetails?.licenseExpiryDate ? new Date(viewingPharmacist.professionalDetails.licenseExpiryDate).toLocaleDateString() : 'N/A'}</span>
                                         </div>
                                         {viewingPharmacist.professionalDetails?.specialization && (
                                             <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
                                                 <span className="text-gray-500 font-medium">Specialization:</span>
-                                                <span className="text-gray-900 font-black">{viewingPharmacist.professionalDetails?.specialization}</span>
+                                                <span className="text-gray-900 font-bold">{viewingPharmacist.professionalDetails?.specialization}</span>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Briefcase size={14} /> Workplace Assignment
                                     </h4>
                                     <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                         <div className="flex flex-col gap-1">
                                             <span className="text-gray-500 font-medium text-[10px] uppercase">Pharmacy</span>
-                                            <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.assignedPharmacy?.basicProfile?.pharmacyName || 'Not Assigned'}</span>
+                                            <span className="text-gray-900 font-bold">{viewingPharmacist.assignment?.assignedPharmacy?.basicProfile?.pharmacyName || 'Not Assigned'}</span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 pt-2">
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-gray-500 font-medium text-[10px] uppercase">Shift</span>
-                                                <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.shift}</span>
+                                                <span className="text-gray-900 font-bold">{viewingPharmacist.assignment?.shift}</span>
                                             </div>
                                             <div className="flex flex-col gap-1 text-right">
                                                 <span className="text-gray-500 font-medium text-[10px] uppercase">Employment</span>
-                                                <span className="text-gray-900 font-black">{viewingPharmacist.assignment?.employmentType}</span>
+                                                <span className="text-gray-900 font-bold">{viewingPharmacist.assignment?.employmentType}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -600,30 +600,30 @@ const ManagePharmacists = () => {
                             {/* Right Column: Contact & Personal */}
                             <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Phone size={14} /> Contact Information
                                     </h4>
                                     <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                         <div className="flex gap-3">
                                             <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Mail size={16} /></div>
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Email</span>
-                                                <span className="text-sm text-gray-900 font-bold break-all">{viewingPharmacist.contact?.email}</span>
+                                                <span className="text-[10px] text-gray-400 font-semibold uppercase">Email</span>
+                                                <span className="text-sm text-gray-900 font-semibold break-all">{viewingPharmacist.contact?.email}</span>
                                             </div>
                                         </div>
                                         <div className="flex gap-3">
                                             <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Phone size={16} /></div>
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Phone</span>
-                                                <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.contact?.phoneNumber}</span>
+                                                <span className="text-[10px] text-gray-400 font-semibold uppercase">Phone</span>
+                                                <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.contact?.phoneNumber}</span>
                                             </div>
                                         </div>
                                         {viewingPharmacist.contact?.address && (
                                             <div className="flex gap-3">
                                                 <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><MapPin size={16} /></div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-gray-400 font-bold uppercase">Address</span>
-                                                    <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.contact?.address}</span>
+                                                    <span className="text-[10px] text-gray-400 font-semibold uppercase">Address</span>
+                                                    <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.contact?.address}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -631,20 +631,20 @@ const ManagePharmacists = () => {
                                 </div>
 
                                 <div>
-                                    <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3">Other Details</h4>
+                                    <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-3">Other Details</h4>
                                     <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Gender</span>
-                                            <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.gender}</span>
+                                            <span className="text-[10px] text-gray-400 font-semibold uppercase">Gender</span>
+                                            <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.gender}</span>
                                         </div>
                                         <div className="flex flex-col text-right">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Date of Birth</span>
-                                            <span className="text-sm text-gray-900 font-bold">{viewingPharmacist.dateOfBirth ? new Date(viewingPharmacist.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
+                                            <span className="text-[10px] text-gray-400 font-semibold uppercase">Date of Birth</span>
+                                            <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.dateOfBirth ? new Date(viewingPharmacist.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
                                         </div>
                                         <div className="col-span-2 pt-2 border-t border-gray-200">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Account Status</span>
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${viewingPharmacist.assignment?.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                <span className="text-[10px] text-gray-400 font-semibold uppercase">Account Status</span>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${viewingPharmacist.assignment?.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                                                     {viewingPharmacist.assignment?.status}
                                                 </span>
                                             </div>
@@ -658,7 +658,7 @@ const ManagePharmacists = () => {
                         <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button
                                 onClick={() => setViewingPharmacist(null)}
-                                className="bg-white text-gray-700 font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors shadow-sm"
+                                className="bg-white text-gray-700 font-semibold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors shadow-sm"
                             >
                                 Close Profile
                             </button>
@@ -668,7 +668,7 @@ const ManagePharmacists = () => {
                                     setViewingPharmacist(null);
                                     handleEdit(p);
                                 }}
-                                className="bg-blue-600 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                className="bg-blue-600 text-white font-semibold text-xs uppercase tracking-widest px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
                             >
                                 Edit Record
                             </button>

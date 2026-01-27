@@ -229,7 +229,7 @@ const ManagePatients = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {/* Personal Info */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">Personal Information</h3>
+                                        <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Personal Information</h3>
                                         <input type="text" placeholder="Full Name *" className="input-field" required
                                             value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                         <input type="text" placeholder="Father's / Guardian Name" className="input-field"
@@ -254,7 +254,7 @@ const ManagePatients = () => {
 
                                     {/* Contact & Bio Info */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">Contact & Identity</h3>
+                                        <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Contact & Identity</h3>
                                         <input type="text" placeholder="CNIC / ID Number" className="input-field"
                                             value={formData.cnic} onChange={e => setFormData({ ...formData, cnic: e.target.value })} />
                                         <input type="text" placeholder="Phone Number *" className="input-field" required
@@ -267,7 +267,7 @@ const ManagePatients = () => {
 
                                     {/* System & Emergency */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">System & Emergency</h3>
+                                        <h3 className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">System & Emergency</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <select className="input-field" value={formData.patientType} onChange={e => setFormData({ ...formData, patientType: e.target.value })}>
                                                 <option value="OPD">OPD</option>
@@ -283,7 +283,7 @@ const ManagePatients = () => {
                                         <input type="password" placeholder={editMode ? "New Password (Optional)" : "Account Password *"} className="input-field" required={!editMode}
                                             value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Emergency Contact</p>
+                                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Emergency Contact</p>
                                             <input type="text" placeholder="Name" className="input-field bg-white"
                                                 value={formData.emergencyContact?.name} onChange={e => setFormData({ ...formData, emergencyContact: { ...formData.emergencyContact, name: e.target.value } })} />
                                             <div className="grid grid-cols-2 gap-2">
@@ -360,13 +360,13 @@ const ManagePatients = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">ID</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Patient Details</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Classification</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Blood</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Created</th>
-                                        <th className="p-4 font-bold text-gray-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">ID</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Patient Details</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Classification</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Blood</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest">Created</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -393,24 +393,24 @@ const ManagePatients = () => {
                                         patients.map((patient) => (
                                             <tr key={patient._id} className="hover:bg-gray-50 transition-all group">
                                                 <td className="p-4">
-                                                    <span className="font-mono text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 uppercase">
+                                                    <span className="font-mono text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 uppercase">
                                                         {patient.patientId}
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-black text-xs">
+                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
                                                             {patient.name?.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <div className="text-sm font-black text-gray-900 leading-tight">{patient.name}</div>
-                                                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{patient.contact?.phone || 'No Phone'}</div>
+                                                            <div className="text-sm font-bold text-gray-900 leading-tight">{patient.name}</div>
+                                                            <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-tight">{patient.contact?.phone || 'No Phone'}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex flex-col">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black inline-block w-fit uppercase border ${patient.patientType === 'ER' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block w-fit uppercase border ${patient.patientType === 'ER' ? 'bg-red-50 text-red-700 border-red-200' :
                                                             patient.patientType === 'IPD' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                                                 'bg-blue-50 text-blue-700 border-blue-200'
                                                             }`}>
@@ -421,23 +421,23 @@ const ManagePatients = () => {
                                                 </td>
                                                 <td className="p-4">
                                                     {patient.bloodGroup ? (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
                                                             <span className="w-1 h-1 rounded-full bg-rose-500"></span>
                                                             {patient.bloodGroup}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-gray-300 font-bold text-xs">-</span>
+                                                        <span className="text-gray-300 font-semibold text-xs">-</span>
                                                     )}
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${patient.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${patient.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
                                                         patient.status === 'Discharged' ? 'bg-gray-100 text-gray-600' :
                                                             'bg-red-50 text-red-600'
                                                         }`}>
                                                         {patient.status || 'Active'}
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-[10px] text-gray-500 font-bold uppercase">
+                                                <td className="p-4 text-[10px] text-gray-500 font-semibold uppercase">
                                                     {new Date(patient.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td className="p-4 text-right">

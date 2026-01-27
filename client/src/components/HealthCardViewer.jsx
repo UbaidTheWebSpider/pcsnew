@@ -192,7 +192,7 @@ const HealthCardViewer = ({ patient, onClose }) => {
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h3 className="font-extrabold text-2xl tracking-wide">HEALTH PASS</h3>
+                                                <h3 className="font-bold text-2xl tracking-wide">HEALTH PASS</h3>
                                                 <p className="text-[11px] text-blue-200 uppercase tracking-[0.3em] font-semibold">Universal Digital ID</p>
                                             </div>
                                         </div>
@@ -206,8 +206,8 @@ const HealthCardViewer = ({ patient, onClose }) => {
                                     <div className="flex gap-8">
                                         <div className="flex-1">
                                             <div className="mb-6">
-                                                <p className="text-[11px] text-blue-300 uppercase tracking-widest font-bold mb-1">Patient Name</p>
-                                                <p className="font-bold text-3xl truncate">{patient.name}</p>
+                                                <p className="text-[11px] text-blue-300 uppercase tracking-widest font-semibold mb-1">Patient Name</p>
+                                                <p className="font-semibold text-3xl truncate">{patient.name}</p>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">
@@ -217,7 +217,7 @@ const HealthCardViewer = ({ patient, onClose }) => {
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] text-blue-300 uppercase tracking-widest mb-1">Blood Group</p>
-                                                    <p className="font-bold text-sm">{patient.bloodGroup || 'N/A'}</p>
+                                                    <p className="font-semibold text-sm">{patient.bloodGroup || 'N/A'}</p>
                                                 </div>
                                                 <div className="col-span-2">
                                                     <p className="text-[10px] text-blue-300 uppercase tracking-widest mb-1">CNIC</p>
@@ -247,7 +247,7 @@ const HealthCardViewer = ({ patient, onClose }) => {
                                     <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                                         <div>
                                             <p className="text-[10px] text-blue-300 uppercase tracking-widest mb-1">Health ID</p>
-                                            <p className="font-mono text-2xl font-black tracking-widest text-amber-300">{patient.healthId}</p>
+                                            <p className="font-mono text-2xl font-bold tracking-widest text-amber-300">{patient.healthId}</p>
                                         </div>
                                         <div className="bg-white/95 px-2 py-2 rounded-lg">
                                             <Barcode value={patient.healthId} width={1.5} height={30} format="CODE128" displayValue={false} background="transparent" margin={0} />
