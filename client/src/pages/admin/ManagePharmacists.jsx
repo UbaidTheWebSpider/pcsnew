@@ -429,7 +429,7 @@ const ManagePharmacists = () => {
                                                 <td className="p-4">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-600 uppercase">
-                                                            <GraduationCap size={12} className="text-blue-500" />
+                                                            <GraduationCap size={12} className="text-indigo-500" />
                                                             {pharmacist.professionalDetails?.qualification}
                                                         </div>
                                                         <div className="text-[9px] text-gray-400 font-semibold uppercase">
@@ -549,7 +549,7 @@ const ManagePharmacists = () => {
                             {/* Left Column: Professional */}
                             <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <GraduationCap size={14} /> Professional Details
                                     </h4>
                                     <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
@@ -600,19 +600,19 @@ const ManagePharmacists = () => {
                             {/* Right Column: Contact & Personal */}
                             <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Phone size={14} /> Contact Information
                                     </h4>
                                     <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                         <div className="flex gap-3">
-                                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Mail size={16} /></div>
+                                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Mail size={16} /></div>
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-gray-400 font-semibold uppercase">Email</span>
                                                 <span className="text-sm text-gray-900 font-semibold break-all">{viewingPharmacist.contact?.email}</span>
                                             </div>
                                         </div>
                                         <div className="flex gap-3">
-                                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><Phone size={16} /></div>
+                                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Phone size={16} /></div>
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-gray-400 font-semibold uppercase">Phone</span>
                                                 <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.contact?.phoneNumber}</span>
@@ -620,7 +620,7 @@ const ManagePharmacists = () => {
                                         </div>
                                         {viewingPharmacist.contact?.address && (
                                             <div className="flex gap-3">
-                                                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><MapPin size={16} /></div>
+                                                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><MapPin size={16} /></div>
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] text-gray-400 font-semibold uppercase">Address</span>
                                                     <span className="text-sm text-gray-900 font-semibold">{viewingPharmacist.contact?.address}</span>

@@ -421,8 +421,8 @@ const ManagePatients = () => {
                                                 </td>
                                                 <td className="p-4">
                                                     {patient.bloodGroup ? (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
-                                                            <span className="w-1 h-1 rounded-full bg-rose-500"></span>
+                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                                                            <span className="w-1 h-1 rounded-full bg-indigo-500"></span>
                                                             {patient.bloodGroup}
                                                         </span>
                                                     ) : (

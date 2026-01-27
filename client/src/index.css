@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    /* Typography Scale - Ultra-Compact (10-11px target) */
-    --font-size-xs: 0.625rem;   /* 10px */
-    --font-size-sm: 0.625rem;   /* 10px */
-    --font-size-base: 0.6875rem; /* 11px */
-    --font-size-lg: 0.6875rem;   /* 11px */
-    --font-size-xl: 0.75rem;     /* 12px */
-    --font-size-2xl: 0.8125rem;  /* 13px */
-    --font-size-3xl: 0.875rem;   /* 14px */
-    --font-size-4xl: 0.9375rem;  /* 15px */
-    --font-size-5xl: 1rem;       /* 16px */
+    /* Typography Scale - Professional Sizing (12px target) */
+    --font-size-xs: 0.6875rem;  /* 11px */
+    --font-size-sm: 0.75rem;    /* 12px */
+    --font-size-base: 0.75rem;  /* 12px */
+    --font-size-lg: 0.8125rem;  /* 13px */
+    --font-size-xl: 0.875rem;   /* 14px */
+    --font-size-2xl: 1rem;      /* 16px */
+    --font-size-3xl: 1.125rem;  /* 18px */
+    --font-size-4xl: 1.25rem;   /* 20px */
+    --font-size-5xl: 1.5rem;    /* 24px */
     
     /* Icon Sizes - Scale with Typography */
     --icon-size-xs: 1rem;

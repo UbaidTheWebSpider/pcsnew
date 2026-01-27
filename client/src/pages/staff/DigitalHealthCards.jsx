@@ -107,7 +107,7 @@ const DigitalHealthCards = () => {
                                 <div>
                                     <h1 className="text-4xl font-bold text-slate-900 tracking-tight">DigitalHealthCards</h1>
                                     <p className="text-slate-500 font-medium mt-1.5 flex items-center gap-2">
-                                        <Sparkles className="text-amber-400" size={16} />
+                                        <Sparkles className="text-indigo-400" size={16} />
                                         Advanced Patient Identification Management
                                     </p>
                                 </div>
@@ -340,7 +340,7 @@ const PatientCard = ({ patient, onViewCard, onGenerateId }) => {
                         <div className="p-4 bg-gradient-to-br from-indigo-600/5 to-blue-600/5 rounded-2xl border border-indigo-100/50">
                             <div className="flex items-center justify-between mb-1.5">
                                 <p className="text-[10px] font-semibold text-indigo-400 uppercase tracking-widest">Health Network ID</p>
-                                <Sparkles size={12} className="text-amber-400" />
+                                <Sparkles size={12} className="text-indigo-400" />
                             </div>
                             <p className="text-md font-bold text-indigo-600 font-mono tracking-tighter">{patient.healthId}</p>
                         </div>

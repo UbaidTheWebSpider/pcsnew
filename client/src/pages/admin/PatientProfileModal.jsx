@@ -202,7 +202,7 @@ const ProfileContent = ({ patientId }) => {
                         <div className="lg:col-span-2 space-y-8">
                             <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                                 <h3 className="text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-8 pb-4 border-b border-indigo-50 flex items-center gap-3">
-                                    <User size={16} /> Demographics & Personal Details
+                                    <User size={16} className="text-indigo-500" /> Demographics & Personal Details
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-6">
                                     <div>
@@ -234,7 +234,7 @@ const ProfileContent = ({ patientId }) => {
 
                             <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                                 <h3 className="text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-8 pb-4 border-b border-indigo-50 flex items-center gap-3">
-                                    <MapPin size={16} /> Contact & Residential Data
+                                    <MapPin size={16} className="text-indigo-500" /> Contact & Residential Data
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-6">
