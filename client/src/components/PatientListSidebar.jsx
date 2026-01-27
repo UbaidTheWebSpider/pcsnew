@@ -65,18 +65,19 @@ const PatientListSidebar = ({ onPatientSelect }) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="h-full flex flex-col bg-slate-50/50">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 shadow-lg">
+            <div className="bg-slate-900 text-white p-6 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                            <Users className="w-6 h-6" />
+                        <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/10">
+                            <Users className="w-6 h-6 text-indigo-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold">Patient Registry</h2>
-                            <p className="text-sm text-blue-100">
-                                {patients.length} {patients.length === 1 ? 'Patient' : 'Patients'}
+                            <h2 className="text-xl font-bold tracking-tight">Patient Registry</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400/80">
+                                {patients.length} {patients.length === 1 ? 'Record' : 'Records'} Synchronized
                             </p>
                         </div>
                     </div>
@@ -91,14 +92,14 @@ const PatientListSidebar = ({ onPatientSelect }) => {
                 </div>
 
                 {/* Search Bar */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-200 w-5 h-5" />
+                <div className="relative z-10">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Search by name, ID, CNIC..."
+                        placeholder="Search Identity Network..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all text-sm font-medium"
                     />
                 </div>
 
@@ -155,9 +156,9 @@ const PatientListSidebar = ({ onPatientSelect }) => {
                             <div
                                 key={patient._id}
                                 onClick={() => handlePatientClick(patient)}
-                                className={`bg-white rounded-xl shadow-sm border-2 transition-all cursor-pointer hover:shadow-md ${selectedPatientId === patient._id
-                                        ? 'border-blue-500 ring-2 ring-blue-200'
-                                        : 'border-gray-200 hover:border-blue-300'
+                                className={`bg-white rounded-2xl shadow-sm border transition-all cursor-pointer hover:shadow-lg group ${selectedPatientId === patient._id
+                                    ? 'border-indigo-500 ring-4 ring-indigo-500/10'
+                                    : 'border-slate-100 hover:border-indigo-200'
                                     }`}
                             >
                                 <div className="p-4">
@@ -165,27 +166,27 @@ const PatientListSidebar = ({ onPatientSelect }) => {
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${patient.personalInfo?.gender === 'Male'
-                                                    ? 'bg-gradient-to-br from-blue-500 to-blue-600'
-                                                    : patient.personalInfo?.gender === 'Female'
-                                                        ? 'bg-gradient-to-br from-pink-500 to-pink-600'
-                                                        : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                                                ? 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                                : patient.personalInfo?.gender === 'Female'
+                                                    ? 'bg-gradient-to-br from-pink-500 to-pink-600'
+                                                    : 'bg-gradient-to-br from-purple-500 to-purple-600'
                                                 }`}>
                                                 {patient.personalInfo?.fullName?.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-gray-800 text-sm leading-tight">
+                                                <h3 className="font-bold text-slate-900 text-sm leading-tight group-hover:text-indigo-600 transition-colors">
                                                     {patient.personalInfo?.fullName}
                                                 </h3>
-                                                <p className="text-xs text-gray-500 font-mono mt-0.5">
+                                                <p className="text-[10px] text-slate-400 font-mono mt-0.5 font-bold uppercase tracking-tighter">
                                                     {patient.patientId}
                                                 </p>
                                             </div>
                                         </div>
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${patient.admissionDetails?.patientType === 'OPD'
-                                                ? 'bg-green-100 text-green-700'
-                                                : patient.admissionDetails?.patientType === 'IPD'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-red-100 text-red-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : patient.admissionDetails?.patientType === 'IPD'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'bg-red-100 text-red-700'
                                             }`}>
                                             {patient.admissionDetails?.patientType}
                                         </span>

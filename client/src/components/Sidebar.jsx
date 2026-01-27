@@ -61,10 +61,10 @@ const Sidebar = () => {
         <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-screen flex flex-col shadow-sm z-10 transition-colors duration-200">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">P</span>
+                    <div className="w-8 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200/50">
+                        <span className="text-white font-bold text-lg">H</span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Pharmacy</span>
+                    <span className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Hi-Cursor</span>
                 </div>
             </div>
 
@@ -77,12 +77,12 @@ const Sidebar = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${isActive
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm'
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-300 hover:shadow-md hover:shadow-indigo-500/5'
                                     }`}
                             >
-                                <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} />
+                                <Icon className={`w-5 h-5 transition-all duration-300 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-indigo-500 group-hover:scale-110'}`} />
                                 <span className="text-sm">{item.label}</span>
                             </Link>
                         );
@@ -91,8 +91,8 @@ const Sidebar = () => {
             </div>
 
             <div className="p-4 border-t border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 group hover:border-indigo-200 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs group-hover:scale-110 transition-transform">
                         {user?.name?.charAt(0) || 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
