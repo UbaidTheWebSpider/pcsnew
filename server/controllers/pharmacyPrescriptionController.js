@@ -207,7 +207,7 @@ exports.validatePrescription = async (req, res) => {
             });
         }
 
-        await fulfillment.validate(req.user._id);
+        await fulfillment.validateFulfillment(req.user._id);
 
         // Create audit log
         await PharmacyAuditLog.createLog({

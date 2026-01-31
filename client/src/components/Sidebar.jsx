@@ -64,7 +64,7 @@ const Sidebar = () => {
                     <div className="w-8 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200/50">
                         <span className="text-white font-bold text-lg">H</span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Hi-Cursor</span>
+                    <span className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Doctor Dashboard</span>
                 </div>
             </div>
 

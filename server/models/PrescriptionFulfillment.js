@@ -85,9 +85,7 @@ const prescriptionFulfillmentSchema = new mongoose.Schema({
 });
 
 // Indexes
-prescriptionFulfillmentSchema.index({ prescriptionId: 1 }, { unique: true });
 prescriptionFulfillmentSchema.index({ pharmacyId: 1, status: 1 });
-prescriptionFulfillmentSchema.index({ pharmacistId: 1 });
 prescriptionFulfillmentSchema.index({ createdAt: -1 });
 
 // Virtual: Check if fully fulfilled
@@ -109,7 +107,8 @@ prescriptionFulfillmentSchema.virtual('fulfillmentPercentage').get(function () {
 });
 
 // Method to validate prescription
-prescriptionFulfillmentSchema.methods.validate = function (userId) {
+// Renamed from 'validate' to avoid conflict with Mongoose internal validate method
+prescriptionFulfillmentSchema.methods.validateFulfillment = function (userId) {
     this.status = 'in_progress';
     this.validatedAt = new Date();
     this.validatedBy = userId;

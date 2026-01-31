@@ -251,6 +251,43 @@ const addBatch = async (req, res) => {
     }
 };
 
+// @desc    Get all available medicines across pharmacies (for doctors)
+// @route   GET /api/medicines/available
+// @access  Private/Doctor
+const getAvailableMedicines = async (req, res) => {
+    console.log('[MedicineController] getAvailableMedicines hit for user:', req.user?._id);
+    try {
+        // Find all batches with quantity > 0
+        const batches = await MasterMedicineBatch.find({
+            quantity: { $gt: 0 },
+            isDeleted: false,
+            status: 'available'
+        }).populate('masterMedicineId');
+
+        // Group by medicine
+        const medicinesMap = new Map();
+        batches.forEach(batch => {
+            if (!batch.masterMedicineId) return;
+            const medId = batch.masterMedicineId._id.toString();
+            if (!medicinesMap.has(medId)) {
+                medicinesMap.set(medId, {
+                    _id: batch.masterMedicineId._id,
+                    name: batch.masterMedicineId.name,
+                    genericName: batch.masterMedicineId.genericName,
+                    strength: batch.masterMedicineId.strength,
+                    dosageForm: batch.masterMedicineId.dosageForm,
+                    totalQuantity: 0
+                });
+            }
+            medicinesMap.get(medId).totalQuantity += batch.quantity;
+        });
+
+        res.json({ success: true, data: Array.from(medicinesMap.values()) });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     addMedicine,
     getMedicines,
@@ -260,4 +297,5 @@ module.exports = {
     getLowStock,
     getExpiring,
     addBatch,
+    getAvailableMedicines,
 };

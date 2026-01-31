@@ -72,6 +72,27 @@ app.use((err, req, res, next) => {
   });
 });
 
+const net = require('net');
+
+const findAvailablePort = (startPort) => {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(findAvailablePort(startPort + 1));
+      } else {
+        reject(err);
+      }
+    });
+    server.listen(startPort, () => {
+      server.close(() => {
+        resolve(startPort);
+      });
+    });
+  });
+};
+
 // Start Server with Socket.io
 if (require.main === module) {
   const http = require('http');
@@ -80,10 +101,23 @@ if (require.main === module) {
   const server = http.createServer(app);
   initializeSocket(server);
 
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Socket.io enabled for real-time updates`);
-  });
+  const startServer = async () => {
+    try {
+      const port = await findAvailablePort(PORT);
+      server.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+        console.log(`Socket.io enabled for real-time updates`);
+        if (port !== PORT) {
+          console.log(`Notice: Port ${PORT} was in use, switched to ${port}`);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
+
+  startServer();
 }
 
 module.exports = app;

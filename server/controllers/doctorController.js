@@ -1,7 +1,10 @@
+const mongoose = require('mongoose');
 const Patient = require('../models/Patient');
 const Appointment = require('../models/Appointment');
 const Prescription = require('../models/Prescription');
 const Doctor = require('../models/Doctor');
+const User = require('../models/User');
+const StaffPatient = require('../models/StaffPatient');
 const bbbService = require('../utils/bbbService');
 
 // @desc    Get doctor profile
@@ -78,9 +81,6 @@ const generateSchedule = async (req, res) => {
                     });
 
                     if (!exists) {
-                        // In a real system, you might create "Slot" documents here.
-                        // For this system, we might just return generated slots or auto-create empty appointments if that's the design.
-                        // Assuming we just return them for preview or validation for now.
                         slots.push({
                             date: d.toISOString().split('T')[0],
                             time: timeString,
@@ -145,35 +145,111 @@ const startTelemedicineSession = async (req, res) => {
 // @access  Private/Doctor
 const getPatients = async (req, res) => {
     try {
-        const { search, page = 1, limit = 10, sortBy = 'name', sortOrder = 'asc' } = req.query;
+        const { search } = req.query;
+        const doctorId = req.user._id;
 
-        const query = { assignedDoctorId: req.user._id };
+        // 1. Get manually assigned patients from Patient collection
+        const assignedPatients = await Patient.find({ assignedDoctorId: doctorId, isDeleted: false });
 
+        // 2. Get assigned patients from StaffPatient collection
+        const assignedStaffPatients = await StaffPatient.find({
+            'admissionDetails.assignedDoctorId': doctorId,
+            isActive: true
+        });
+
+        // 3. Get userIds from appointments and prescriptions (consulted users)
+        const [appointmentUsers, prescriptionUsers] = await Promise.all([
+            Appointment.find({ doctorId: doctorId }).distinct('patientId'),
+            Prescription.find({ doctorId: doctorId }).distinct('patientId')
+        ]);
+
+        const extraUserIds = [...new Set([...appointmentUsers, ...prescriptionUsers])].filter(id => id);
+
+        // 4. Find Patients linked to these userIds
+        const linkedPatients = await Patient.find({
+            userId: { $in: extraUserIds },
+            isDeleted: false
+        });
+
+        // 5. Identify User IDs that don't have a Patient record yet
+        const patientUserIds = new Set(linkedPatients.map(p => p.userId?.toString()));
+        const userIdsWithoutPatientRecord = extraUserIds.filter(id => !patientUserIds.has(id.toString()));
+
+        // 6. Fetch User records for those without Patient profiles
+        const ghostUsers = await User.find({
+            _id: { $in: userIdsWithoutPatientRecord },
+            role: 'patient'
+        });
+
+        // 7. Normalize and Merge
+        const combinedMap = new Map();
+
+        // Helper to normalize Patient
+        const normPatient = (p) => ({
+            _id: p._id,
+            name: p.name,
+            patientId: p.patientId || p.healthId || 'REG-PT',
+            contact: p.contact?.phone || 'N/A',
+            age: p.age || (p.dateOfBirth ? Math.floor((new Date() - new Date(p.dateOfBirth)) / 31557600000) : 'N/A'),
+            gender: p.gender || 'N/A',
+            cnic: p.cnic || 'N/A',
+            updatedAt: p.updatedAt,
+            source: 'clinical'
+        });
+
+        // Helper to normalize StaffPatient
+        const normStaff = (p) => ({
+            _id: p._id,
+            name: p.personalInfo?.fullName || 'Unknown Staff Patient',
+            patientId: p.patientId || p.healthId || 'STAFF-PT',
+            contact: p.contactInfo?.mobileNumber || 'N/A',
+            age: p.personalInfo?.dateOfBirth ? Math.floor((new Date() - new Date(p.personalInfo.dateOfBirth)) / 31557600000) : 'N/A',
+            gender: p.personalInfo?.gender || 'N/A',
+            cnic: p.personalInfo?.cnic || 'N/A',
+            updatedAt: p.updatedAt,
+            source: 'staff'
+        });
+
+        // Helper to normalize User (Ghost Patient)
+        const normUser = (u) => ({
+            _id: u._id,
+            name: u.name,
+            patientId: u.healthId || 'USER-PT',
+            contact: u.contact?.phone || 'N/A',
+            age: u.dateOfBirth ? Math.floor((new Date() - new Date(u.dateOfBirth)) / 31557600000) : 'N/A',
+            gender: u.gender || 'N/A',
+            cnic: 'N/A',
+            updatedAt: u.createdAt,
+            source: 'user'
+        });
+
+        assignedPatients.forEach(p => combinedMap.set(p._id.toString(), normPatient(p)));
+        linkedPatients.forEach(p => combinedMap.set(p._id.toString(), normPatient(p)));
+        assignedStaffPatients.forEach(p => combinedMap.set(p._id.toString(), normStaff(p)));
+        ghostUsers.forEach(u => combinedMap.set(u._id.toString(), normUser(u)));
+
+        let finalPatients = Array.from(combinedMap.values());
+
+        // 8. Filter by Search
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { patientId: { $regex: search, $options: 'i' } },
-                { cnic: { $regex: search, $options: 'i' } },
-            ];
+            const lowSearch = search.toLowerCase();
+            finalPatients = finalPatients.filter(p =>
+                p.name?.toLowerCase().includes(lowSearch) ||
+                p.patientId?.toLowerCase().includes(lowSearch) ||
+                p.cnic?.includes(search)
+            );
         }
 
-        const total = await Patient.countDocuments(query);
-        const patients = await Patient.find(query)
-            .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-
-        res.json({
+        res.status(200).json({
             success: true,
             data: {
-                patients,
-                total,
-                page: parseInt(page),
-                pages: Math.ceil(total / limit),
-            },
+                total: finalPatients.length,
+                patients: finalPatients
+            }
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in getPatients:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -366,7 +442,6 @@ const createAppointment = async (req, res) => {
         });
 
         if (conflict) {
-            // Simple conflict check - can be enhanced with time overlap logic
             return res.status(400).json({ message: 'Time slot may be occupied' });
         }
 

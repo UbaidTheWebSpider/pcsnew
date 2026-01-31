@@ -16,7 +16,11 @@ const {
     cancelAppointment,
     completeAppointment,
 } = require('../controllers/doctorController');
+const { getAvailableMedicines } = require('../controllers/medicineController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+
+// Medicine availability for prescriptions
+router.get('/medicines/available', protect, authorize('doctor'), getAvailableMedicines);
 
 // Profile routes
 router.get('/profile', protect, authorize('doctor'), getProfile);

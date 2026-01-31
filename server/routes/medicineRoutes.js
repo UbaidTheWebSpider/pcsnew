@@ -9,11 +9,13 @@ const {
     getLowStock,
     getExpiring,
     addBatch,
+    getAvailableMedicines,
 } = require('../controllers/medicineController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorizePharmacyRole, attachPharmacyContext } = require('../middleware/pharmacyAuthMiddleware');
 
 router.use(protect);
+
 router.use(attachPharmacyContext);
 
 router.route('/')

@@ -130,7 +130,6 @@ const patientSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true, // Allows null/undefined for existing records
-        index: true
     },
     photoUrl: {
         type: String, // URL to stored image
